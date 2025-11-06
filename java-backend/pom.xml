@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>io.github.mfthfzn</groupId>
-	<artifactId>manajemen-inventaris</artifactId>
+	<artifactId>java-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>manajemen-inventaris</name>
+	<name>java-backend</name>
 	<description>Project Manajemen Inventaris</description>
 	<url/>
 	<licenses>
@@ -44,8 +44,6 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
