@@ -1,12 +1,41 @@
 const visibilityLogo = document.querySelector(".visibility-logo");
-const passwordField = document.querySelector("#password");
+const password = document.querySelector("#password");
 
-visibilityLogo.addEventListener("click", function() {
-  if (passwordField.type == "password") {
-    passwordField.type = "text";
+visibilityLogo.addEventListener("click", function () {
+  if (password.type == "password") {
+    password.type = "text";
     visibilityLogo.src = "assets/show.svg";
   } else {
-    passwordField.type = "password";
+    password.type = "password";
     visibilityLogo.src = "assets/hide.svg";
   }
-})
+});
+
+document.querySelector(".login-form").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const response = await fetch("http://localhost:8080/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+        });
+
+        const data = await response.json();
+        console.log("Response:", data);
+
+        if (response.status === 200) {
+          window.location.href = "dashboard-cashier.html";
+        } else {
+          document.querySelector(".message-error").textContent = data.message;
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        document.querySelector(".message-error").textContent = "Terjadi kesalahan saat login!";
+      }
+    });

@@ -10,4 +10,6 @@ public interface LoginService {
 
   boolean authenticate(LoginRequest loginRequest);
 
+  User getUserByEmail(LoginRequest loginRequest);
+
 }

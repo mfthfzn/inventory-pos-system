@@ -3,10 +3,13 @@ package io.github.mfthfzn.service;
 import io.github.mfthfzn.dto.LoginRequest;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.repository.LoginRepositoryImpl;
+import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
+
+import java.util.Optional;
 
 public class LoginServiceImpl implements LoginService{
 
-  private LoginRepositoryImpl loginRepository;
+  private final LoginRepositoryImpl loginRepository;
 
   public LoginServiceImpl(LoginRepositoryImpl loginRepository) {
     this.loginRepository = loginRepository;
@@ -14,14 +17,28 @@ public class LoginServiceImpl implements LoginService{
 
   @Override
   public boolean isEmailRegistered(LoginRequest loginRequest) {
-    User user = loginRepository.findUserByEmail(loginRequest.getEmail());
-    return user != null;
+    Optional<User> userOptional = Optional.ofNullable(loginRepository.findUserByEmail(loginRequest.getEmail()));
+    return userOptional.isPresent();
   }
 
   @Override
   public boolean authenticate(LoginRequest loginRequest) {
-    User user = loginRepository.findUserByEmail(loginRequest.getEmail());
+    Optional<User> userOptional = Optional.ofNullable(loginRepository.findUserByEmail(loginRequest.getEmail()));
+    if (userOptional.isPresent()) {
+      User user = userOptional.get();
+      return loginRequest.getEmail().equals(user.getEmail()) && loginRequest.getPassword().equals(user.getPassword());
+    } else {
+      return false;
+    }
+  }
 
-    return loginRequest.getEmail().equals(user.getEmail()) && loginRequest.getPassword().equals(user.getPassword());
+  @Override
+  public User getUserByEmail(LoginRequest loginRequest) {
+    Optional<User> userOptional = Optional.ofNullable(loginRepository.findUserByEmail(loginRequest.getEmail()));
+    if (userOptional.isPresent()) {
+      return userOptional.get();
+    } else {
+      return null;
+    }
   }
 }

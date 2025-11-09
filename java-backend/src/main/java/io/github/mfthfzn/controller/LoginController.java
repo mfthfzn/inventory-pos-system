@@ -3,6 +3,8 @@ package io.github.mfthfzn.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mfthfzn.dto.LoginRequest;
 import io.github.mfthfzn.dto.LoginResponse;
+import io.github.mfthfzn.entity.Name;
+import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.repository.LoginRepositoryImpl;
 import io.github.mfthfzn.service.LoginServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
@@ -16,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.io.PrintWriter;
 import java.util.Set;
 
 @WebServlet(urlPatterns = "/login")
@@ -34,6 +36,11 @@ public class LoginController extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    resp.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
+    resp.setHeader("Access-Control-Allow-Methods", "POST");
+    resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
     String email = req.getParameter("email");
     String password = req.getParameter("password");
 
@@ -41,17 +48,46 @@ public class LoginController extends HttpServlet {
     Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(loginRequest);
 
     LoginResponse loginResponse = new LoginResponse();
+    String json;
+    PrintWriter writer = resp.getWriter();
     if (!constraintViolations.isEmpty()) {
       for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
-        loginResponse.setResponse(constraintViolation.getMessage());
+        loginResponse.setMessage(constraintViolation.getMessage());
         break;
       }
-      String json = objectMapper.writeValueAsString(loginResponse);
-      resp.getWriter().println(json);
-    } else {
-
+      json = objectMapper.writeValueAsString(loginResponse);
+      resp.setContentType("application/json");
+      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      writer.println(json);
+      return;
     }
 
+    if (!loginService.isEmailRegistered(loginRequest)) {
+      loginResponse.setMessage("Email yang Anda masukkan tidak Terdaftar!");
+      json = objectMapper.writeValueAsString(loginResponse);
+      writer.println(json);
+      resp.setContentType("application/json");
+      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      return;
+    }
+
+    if (!loginService.authenticate(loginRequest)) {
+      loginResponse.setMessage("Password yang Anda masukkan salah!");
+      json = objectMapper.writeValueAsString(loginResponse);
+      writer.println(json);
+      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    } else {
+      User user = loginService.getUserByEmail(loginRequest);
+      Name name = user.getName();
+      loginResponse.setMessage("Berhasil login!");
+      loginResponse.setName(name);
+      loginResponse.setEmail(user.getEmail());
+      loginResponse.setRole(user.getRole());
+      json = objectMapper.writeValueAsString(loginResponse);
+      resp.setStatus(HttpServletResponse.SC_OK);
+      resp.setContentType("application/json");
+      writer.println(json);
+    }
 
 
   }
