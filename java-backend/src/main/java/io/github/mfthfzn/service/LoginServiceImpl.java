@@ -1,6 +1,7 @@
 package io.github.mfthfzn.service;
 
 import io.github.mfthfzn.dto.LoginRequest;
+import io.github.mfthfzn.dto.LoginResponse;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.repository.LoginRepositoryImpl;
 import org.hibernate.validator.internal.constraintvalidators.bv.EmailValidator;
@@ -27,10 +28,15 @@ public class LoginServiceImpl implements LoginService{
   }
 
   @Override
-  public User getUserByEmail(LoginRequest loginRequest) {
+  public LoginResponse getUserByEmail(LoginRequest loginRequest) {
     Optional<User> userOptional = Optional.ofNullable(loginRepository.findUserByEmail(loginRequest.getEmail()));
     if (userOptional.isPresent()) {
-      return userOptional.get();
+      User user = userOptional.get();
+      LoginResponse loginResponse = new LoginResponse();
+      loginResponse.setEmail(user.getEmail());
+      loginResponse.setName(user.getName());
+      loginResponse.setRole(user.getRole());
+      return loginResponse;
     } else {
       return null;
     }

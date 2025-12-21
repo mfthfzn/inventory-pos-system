@@ -3,8 +3,6 @@ package io.github.mfthfzn.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mfthfzn.dto.LoginRequest;
 import io.github.mfthfzn.dto.LoginResponse;
-import io.github.mfthfzn.entity.Name;
-import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.repository.LoginRepositoryImpl;
 import io.github.mfthfzn.service.LoginServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
@@ -12,6 +10,7 @@ import io.github.mfthfzn.util.JsonUtil;
 import io.github.mfthfzn.util.ValidatorUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Set;
 
-@WebServlet(urlPatterns = "/login")
+@WebServlet(urlPatterns = "/auth/login")
 public class LoginController extends HttpServlet {
 
   private final LoginServiceImpl loginService =
@@ -31,6 +30,14 @@ public class LoginController extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+    resp.setHeader("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
+
+    resp.setHeader("Access-Control-Allow-Credentials", "true");
+
+    resp.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    resp.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
     String email = req.getParameter("email");
     String password = req.getParameter("password");
 
@@ -40,13 +47,13 @@ public class LoginController extends HttpServlet {
     LoginResponse loginResponse = new LoginResponse();
     String json;
     PrintWriter writer = resp.getWriter();
+    resp.setContentType("application/json");
     if (!constraintViolations.isEmpty()) {
       for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
         loginResponse.setMessage(constraintViolation.getMessage());
         break;
       }
       json = objectMapper.writeValueAsString(loginResponse);
-      resp.setContentType("application/json");
       resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       writer.println(json);
       return;
@@ -58,12 +65,16 @@ public class LoginController extends HttpServlet {
       writer.println(json);
       resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     } else {
-      User user = loginService.getUserByEmail(loginRequest);
-      Name name = user.getName();
+      loginResponse = loginService.getUserByEmail(loginRequest);
       loginResponse.setMessage("Berhasil login!");
-      loginResponse.setName(name);
-      loginResponse.setEmail(user.getEmail());
-      loginResponse.setRole(user.getRole());
+
+      Cookie cookie = new Cookie("session-token", loginRequest.getEmail());
+      cookie.setHttpOnly(true);
+      cookie.setSecure(false);
+      cookie.setMaxAge(60 * 60 * 24);
+      cookie.setPath("/");
+      
+      resp.addCookie(cookie);
 
       resp.setStatus(HttpServletResponse.SC_OK);
       resp.setContentType("application/json");
