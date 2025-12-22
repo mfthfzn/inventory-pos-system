@@ -31,7 +31,7 @@ document
         body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(
           password
         )}`,
-        credentials: "include"
+        credentials: "include",
       });
 
       const data = await response.json();
