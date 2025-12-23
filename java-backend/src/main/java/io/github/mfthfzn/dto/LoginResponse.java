@@ -11,6 +11,8 @@ import java.util.Objects;
 @Setter
 public class LoginResponse {
 
+  private boolean auth;
+
   private String message;
 
   private Name name;
@@ -18,6 +20,8 @@ public class LoginResponse {
   private String email;
 
   private UserType role;
+
+  private String token;
 
   public LoginResponse() {
   }

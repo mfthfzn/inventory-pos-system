@@ -31,9 +31,6 @@ public class User {
   @Enumerated(EnumType.STRING)
   private UserType role;
 
-  @OneToOne(mappedBy = "user")
-  private TokenSession tokenSession;
-
   @Override
   public final boolean equals(Object object) {
     if (this == object) return true;

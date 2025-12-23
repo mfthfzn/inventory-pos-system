@@ -3,8 +3,11 @@ package io.github.mfthfzn.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mfthfzn.dto.LoginRequest;
 import io.github.mfthfzn.dto.LoginResponse;
-import io.github.mfthfzn.repository.LoginRepositoryImpl;
-import io.github.mfthfzn.service.LoginServiceImpl;
+import io.github.mfthfzn.repository.TokenSessionRepositoryImpl;
+import io.github.mfthfzn.repository.UserRepositoryImpl;
+import io.github.mfthfzn.service.AuthServiceImpl;
+import io.github.mfthfzn.service.SessionServiceImpl;
+import io.github.mfthfzn.service.UserServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
 import io.github.mfthfzn.util.JsonUtil;
 import io.github.mfthfzn.util.ValidatorUtil;
@@ -21,12 +24,29 @@ import java.io.PrintWriter;
 import java.util.Set;
 
 @WebServlet(urlPatterns = "/auth/login")
-public class LoginController extends HttpServlet {
+public class AuthController extends HttpServlet {
 
-  private final LoginServiceImpl loginService =
-          new LoginServiceImpl(new LoginRepositoryImpl(JpaUtil.getEntityManagerFactory()));
+  private final UserServiceImpl userService =
+          new UserServiceImpl(
+                  new UserRepositoryImpl(JpaUtil.getEntityManagerFactory())
+          );
+
+  private final SessionServiceImpl sessionService =
+          new SessionServiceImpl(
+                  new TokenSessionRepositoryImpl(JpaUtil.getEntityManagerFactory())
+          );
+
+  private final AuthServiceImpl authService =
+          new AuthServiceImpl(
+                  userService, sessionService
+          );
 
   ObjectMapper objectMapper = JsonUtil.getObjectMapper();
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+  }
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -44,10 +64,11 @@ public class LoginController extends HttpServlet {
     LoginRequest loginRequest = new LoginRequest(email, password);
     Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(loginRequest);
 
-    LoginResponse loginResponse = new LoginResponse();
+    LoginResponse loginResponse = authService.login(loginRequest);;
     String json;
     PrintWriter writer = resp.getWriter();
     resp.setContentType("application/json");
+
     if (!constraintViolations.isEmpty()) {
       for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
         loginResponse.setMessage(constraintViolation.getMessage());
@@ -59,17 +80,15 @@ public class LoginController extends HttpServlet {
       return;
     }
 
-    if (!loginService.authenticate(loginRequest)) {
+    if (!loginResponse.isAuth()) {
       loginResponse.setMessage("Email atau password yang Anda masukkan salah!");
       json = objectMapper.writeValueAsString(loginResponse);
       writer.println(json);
       resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     } else {
       String token;
-
-      if ((token = loginService.generateToken(loginRequest)) != null) {
-        loginResponse = loginService.getUser(loginRequest);
-
+      if ((token = loginResponse.getToken()) != null) {
+        log(token);
         // Cookie for session-token
         Cookie cookieToken = new Cookie("session-token", token);
         cookieToken.setHttpOnly(true);
@@ -85,6 +104,13 @@ public class LoginController extends HttpServlet {
         cookieEmail.setPath("/");
         resp.addCookie(cookieEmail);
 
+        // Cookie for email
+        Cookie cookieName = new Cookie("name", loginResponse.getName().getFirstName());
+        cookieName.setHttpOnly(false);
+        cookieName.setSecure(false);
+        cookieName.setPath("/");
+        resp.addCookie(cookieName);
+
         // Cookie for role
         Cookie cookieRole = new Cookie("role", loginResponse.getRole().toString());
         cookieRole.setHttpOnly(false);
@@ -96,7 +122,6 @@ public class LoginController extends HttpServlet {
         loginResponse.setMessage("Berhasil login!");
 
         json = objectMapper.writeValueAsString(loginResponse);
-
         writer.println(json);
       } else {
         loginResponse.setMessage("Gagal generate token session!");

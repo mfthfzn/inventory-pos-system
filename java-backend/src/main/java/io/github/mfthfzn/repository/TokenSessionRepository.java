@@ -3,11 +3,11 @@ package io.github.mfthfzn.repository;
 import io.github.mfthfzn.entity.TokenSession;
 import io.github.mfthfzn.entity.User;
 
-public interface LoginRepository {
+import java.time.LocalDateTime;
 
-  User findUserByEmail(String email);
+public interface TokenSessionRepository {
 
-  boolean setTokenSession(String email, String token);
+  boolean setTokenSession(User user, String token, LocalDateTime expiredAt);
 
   TokenSession findTokenByEmail(String email);
 
