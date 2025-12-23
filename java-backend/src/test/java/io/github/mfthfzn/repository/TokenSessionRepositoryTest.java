@@ -1,22 +1,29 @@
 package io.github.mfthfzn.repository;
 
 import io.github.mfthfzn.entity.Name;
+import io.github.mfthfzn.entity.TokenSession;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.enums.UserType;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@Slf4j
-public class UserRepositoryTest extends RepositoryTest {
+import java.time.LocalDateTime;
+import java.util.UUID;
 
+public class TokenSessionRepositoryTest extends RepositoryTest {
+
+  private TokenSessionRepositoryImpl tokenSessionRepository;
   private UserRepositoryImpl userRepository;
+
+  public TokenSessionRepositoryTest() {
+    this.tokenSessionRepository = new TokenSessionRepositoryImpl(entityManagerFactory);
+    this.userRepository = new UserRepositoryImpl(entityManagerFactory);
+  }
 
   @BeforeEach
   void setUp() {
-    userRepository = new UserRepositoryImpl(entityManagerFactory);
     truncateAllTable();
   }
 
@@ -26,7 +33,8 @@ public class UserRepositoryTest extends RepositoryTest {
   }
 
   @Test
-  void testInsertIntoUserAndFindByEmail() {
+  void testSetSessionAndFindByEmail() {
+
     transaction.begin();
 
     Name name = new Name();
@@ -43,15 +51,23 @@ public class UserRepositoryTest extends RepositoryTest {
     user.setRole(UserType.CASHIER);
 
     entityManager.persist(user);
+
     transaction.commit();
 
     transaction.begin();
     User userByEmail = userRepository.findUserByEmail(email);
-    transaction.commit();
 
-    Assertions.assertNotNull(userByEmail);
-    Assertions.assertEquals(email, userByEmail.getEmail());
-    Assertions.assertEquals(password, userByEmail.getPassword());
-    log.info(userByEmail.toString());
+    String token = UUID.randomUUID().toString();
+    LocalDateTime expiredAt = LocalDateTime.now().plusDays(1);
+
+    boolean tokenSession = tokenSessionRepository.setTokenSession(userByEmail, token, expiredAt);
+    transaction.commit();
+    Assertions.assertTrue(tokenSession);
+
+    TokenSession tokenSessionResult = tokenSessionRepository.findTokenByEmail(email);
+
+    Assertions.assertEquals(token, tokenSessionResult.getToken());
+    Assertions.assertEquals(email, tokenSessionResult.getEmail());
+
   }
 }
