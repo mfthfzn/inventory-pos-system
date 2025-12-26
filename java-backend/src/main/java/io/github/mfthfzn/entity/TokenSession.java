@@ -1,12 +1,10 @@
 package io.github.mfthfzn.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Table(name = "token_sessions")
 @Entity
@@ -28,4 +26,16 @@ public class TokenSession {
   @MapsId
   @JoinColumn(name = "email", referencedColumnName = "email")
   private User user;
+
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || getClass() != object.getClass()) return false;
+    TokenSession that = (TokenSession) object;
+    return Objects.equals(email, that.email) && Objects.equals(token, that.token) && Objects.equals(expiredAt, that.expiredAt) && Objects.equals(user, that.user);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(email, token, expiredAt, user);
+  }
 }

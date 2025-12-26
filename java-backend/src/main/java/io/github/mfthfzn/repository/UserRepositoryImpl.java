@@ -6,9 +6,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.NoResultException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
   private EntityManagerFactory entityManagerFactory;
@@ -26,7 +28,8 @@ public class UserRepositoryImpl implements UserRepository {
       User user = entityManager.find(User.class, email);
       transaction.commit();
       return user;
-    } catch (NoResultException error) {
+    } catch (Exception error) {
+      log.error("e: ", error);
       return null;
     } finally {
       entityManager.close();

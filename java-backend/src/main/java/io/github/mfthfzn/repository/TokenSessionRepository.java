@@ -11,4 +11,6 @@ public interface TokenSessionRepository {
 
   TokenSession findTokenByEmail(String email);
 
+  boolean removeSession(TokenSession tokenSession);
+
 }

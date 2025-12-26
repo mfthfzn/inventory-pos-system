@@ -2,6 +2,8 @@ package io.github.mfthfzn.service;
 
 import io.github.mfthfzn.dto.LoginRequest;
 import io.github.mfthfzn.dto.LoginResponse;
+import io.github.mfthfzn.dto.SessionRequest;
+import io.github.mfthfzn.dto.SessionResponse;
 import io.github.mfthfzn.entity.User;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +22,7 @@ public class AuthServiceImpl implements AuthService {
   }
 
   @Override
-  public LoginResponse login(LoginRequest loginRequest) {
+  public LoginResponse authenticate(LoginRequest loginRequest) {
     LoginResponse loginResponse = new LoginResponse();
     Optional<User> optionalUser = Optional.ofNullable(userService.getUser(loginRequest.getEmail()));
     log.info(String.valueOf(optionalUser.isPresent()));
@@ -43,6 +45,5 @@ public class AuthServiceImpl implements AuthService {
     }
     return loginResponse;
   }
-
 
 }

@@ -2,11 +2,7 @@ package io.github.mfthfzn.entity;
 
 import io.github.mfthfzn.enums.UserType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.hibernate.proxy.HibernateProxy;
+import lombok.*;
 
 import java.util.Objects;
 
@@ -32,18 +28,14 @@ public class User {
   private UserType role;
 
   @Override
-  public final boolean equals(Object object) {
-    if (this == object) return true;
-    if (object == null) return false;
-    Class<?> oEffectiveClass = object instanceof HibernateProxy ? ((HibernateProxy) object).getHibernateLazyInitializer().getPersistentClass() : object.getClass();
-    Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
-    if (thisEffectiveClass != oEffectiveClass) return false;
+  public boolean equals(Object object) {
+    if (object == null || getClass() != object.getClass()) return false;
     User user = (User) object;
-    return getEmail() != null && Objects.equals(getEmail(), user.getEmail());
+    return Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(name, user.name) && role == user.role;
   }
 
   @Override
-  public final int hashCode() {
-    return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+  public int hashCode() {
+    return Objects.hash(email, password, name, role);
   }
 }
