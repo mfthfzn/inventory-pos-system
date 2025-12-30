@@ -20,7 +20,7 @@ document
       const data = await response.json();
 
       if (response.status === 200 && data.removed == true) {
-        window.location.href = "login.html";
+        window.location.href = "/app/users/login";
       }
     } catch (error) {
       console.error("Error:", error);

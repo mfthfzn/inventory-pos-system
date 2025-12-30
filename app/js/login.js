@@ -6,10 +6,10 @@ const password = document.querySelector("#password");
 visibilityLogo.addEventListener("click", function () {
   if (password.type == "password") {
     password.type = "text";
-    visibilityLogo.src = "assets/show.svg";
+    visibilityLogo.src = "../../assets/show.svg";
   } else {
     password.type = "password";
-    visibilityLogo.src = "assets/hide.svg";
+    visibilityLogo.src = "../../assets/hide.svg";
   }
 });
 
@@ -39,8 +39,10 @@ document
       const data = await response.json();
       console.log("Response:", data);
 
-      if (response.status === 200) {
-        window.location.href = "users/cashiers/dashboard/";
+      if (response.status === 200 && data.role == "CASHIER") {
+        window.location.href = "/app/users/cashiers/dashboard/";
+      } else if (response.status === 200 && data.role == "INVENTORY_STAFF") {
+        window.location.href = "/app/users/inventory/dashboard/";
       } else {
         messageError.textContent = data.message;
         // emailValue.value = "";
@@ -53,7 +55,6 @@ document
   });
 
 document.addEventListener("DOMContentLoaded", async function (event) {
-
   try {
     const email = getCookie("email");
     const tokenSession = getCookie("tokenSession");
@@ -66,16 +67,16 @@ document.addEventListener("DOMContentLoaded", async function (event) {
 
     const data = await response.json();
     const role = getCookie("role");
-    console.log(data)
+    console.log(data);
 
     if (response.status === 200 && role == "CASHIER" && data.expired == false) {
-      window.location.href = "users/cashiers/dashboard/";
+      window.location.href = "/app/users/cashiers/dashboard/";
     } else if (
       response.status === 200 &&
       role === "INVENTORY_STAFF" &&
       data.expired == false
     ) {
-      window.location.href = "users/inventory/dashboard/";
+      window.location.href = "/app/users/inventory/dashboard/";
     }
   } catch (error) {
     console.error("Error:", error);
