@@ -26,14 +26,15 @@ public class RepositoryTest {
     entityManagerFactory.close();
   }
 
-  public void truncateAllTable() {
+  public void truncateAllTable(String... tables) {
     try {
       transaction.begin();
       entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 0").executeUpdate();
 
-      entityManager.createNativeQuery("TRUNCATE TABLE token_sessions").executeUpdate();
-      entityManager.createNativeQuery("TRUNCATE TABLE users").executeUpdate();
-      entityManager.createNativeQuery("TRUNCATE TABLE stores").executeUpdate();
+      for (String table : tables) {
+        String sql = "TRUNCATE TABLE " + table;
+        entityManager.createNativeQuery(sql).executeUpdate();
+      }
 
       entityManager.createNativeQuery("SET FOREIGN_KEY_CHECKS = 1").executeUpdate();
 

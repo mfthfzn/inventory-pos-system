@@ -30,16 +30,16 @@ public class TokenSessionRepositoryTest extends RepositoryTest {
 
   @BeforeEach
   void setUp() {
-    truncateAllTable();
+    truncateAllTable("users", "token_sessions", "stores");
   }
 
   @AfterEach
   void tearDown() {
-    truncateAllTable();
+    truncateAllTable("users", "token_sessions", "stores");
   }
 
   @Test
-  void testSetSessionAndFindByEmail() {
+  void testSaveSessionAndFindByEmail() {
 
     transaction.begin();
     Store store = new Store();
