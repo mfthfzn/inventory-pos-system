@@ -2,7 +2,6 @@ package io.github.mfthfzn.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Embedded;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,13 +10,13 @@ import lombok.Setter;
 @Setter
 public class Name {
 
-  @Column(name = "first_name")
+  @Column(name = "first_name", length = 50, nullable = false)
   private String firstName;
 
-  @Column(name = "middle_name")
+  @Column(name = "middle_name", length = 50, nullable = false)
   private String middleName;
 
-  @Column(name = "last_name")
+  @Column(name = "last_name", length = 50, nullable = false)
   private String lastName;
 
   public String getFullName() {

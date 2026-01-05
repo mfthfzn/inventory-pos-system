@@ -15,8 +15,10 @@ import java.util.Objects;
 public class TokenSession {
 
   @Id
+  @Column(nullable = false)
   private String email;
 
+  @Column(nullable = false, length = 36)
   private String token;
 
   @Column(name = "expired_at")
