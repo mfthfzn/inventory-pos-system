@@ -17,6 +17,7 @@ body {
   padding: 20px;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -26,6 +27,11 @@ body {
 }
 
 .sidebar-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header-content {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -88,10 +94,28 @@ body {
   font-weight: 400;
 }
 
+.store-info-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center;
+  align-items: center; */
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.store-name {
+  font-size: 16px;
+  color: var(--primary-font-color);
+  text-align: center;
+  font-weight: 500;
+}
+
 .divider {
-  height: 1px;
-  background-color: var(--secondary-font-color);
-  margin: 1rem 0;
+  margin-top: 8px;
+  height: 3px;
+  width: 100%;
+  background-color: var(--primary-font-color);
 }
 
 /* =========================================
