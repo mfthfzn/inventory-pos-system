@@ -2,6 +2,7 @@ package io.github.mfthfzn.entity;
 
 import io.github.mfthfzn.enums.UserType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
   @Id
@@ -25,8 +27,7 @@ public class User {
   @Column(nullable = false)
   private String password;
 
-  @Embedded
-  private Name name;
+  private String name;
 
   @Enumerated(EnumType.STRING)
   private UserType role;
@@ -37,7 +38,7 @@ public class User {
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
-  @ManyToOne
+  @ManyToOne()
   @JoinColumn(
           name = "store_id",
           referencedColumnName = "id"
@@ -46,16 +47,4 @@ public class User {
 
   @OneToMany(mappedBy = "user")
   private List<StockMovement> stockMovements;
-
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "(" +
-            "email = " + email + ", " +
-            "password = " + password + ", " +
-            "name = " + name + ", " +
-            "role = " + role + ", " +
-            "createdAt = " + createdAt + ", " +
-            "updatedAt = " + updatedAt + ", " +
-            "store = " + store + ")";
-  }
 }

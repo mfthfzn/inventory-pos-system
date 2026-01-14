@@ -29,7 +29,6 @@ public class CorsFilter implements Filter {
       resp.setStatus(HttpServletResponse.SC_OK);
       return;
     }
-
     chain.doFilter(request, response);
   }
 

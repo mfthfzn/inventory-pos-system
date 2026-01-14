@@ -72,6 +72,7 @@
 			<version>2.19.2</version>
 		</dependency>
 
+        <!--junit Dependencies-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -87,6 +88,8 @@
 			<artifactId>mockito-junit-jupiter</artifactId>
 			<version>5.10.0</version>
 		</dependency>
+
+		<!--Hibernate Validator Dependencies-->
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
@@ -97,11 +100,14 @@
 			<artifactId>hibernate-validator</artifactId>
 			<version>9.0.1.Final</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>jakarta.el</artifactId>
 			<version>5.0.0-M1</version>
 		</dependency>
+
+		<!--Logging Dependencies-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -112,15 +118,26 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.5.13</version>
 		</dependency>
+
+		<!--Lombok Dependencies-->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>1.18.32</version>
 		</dependency>
+
+		<!--resilience4j Dependencies-->
 		<dependency>
 			<groupId>io.github.resilience4j</groupId>
 			<artifactId>resilience4j-all</artifactId>
 			<version>2.3.0</version>
+		</dependency>
+
+		<!--JWT Dependencies-->
+		<dependency>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>4.5.0</version>
 		</dependency>
 	</dependencies>
 

@@ -9,8 +9,20 @@
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 
         <!-- Entity Classes -->
+        <class>io.github.mfthfzn.entity.Brand</class>
+        <class>io.github.mfthfzn.entity.Color</class>
+        <class>io.github.mfthfzn.entity.Color</class>
+        <class>io.github.mfthfzn.entity.Product</class>
+        <class>io.github.mfthfzn.entity.ProductTarget</class>
+        <class>io.github.mfthfzn.entity.ProductVariant</class>
+        <class>io.github.mfthfzn.entity.Size</class>
+        <class>io.github.mfthfzn.entity.Stock</class>
+        <class>io.github.mfthfzn.entity.StockMovement</class>
+        <class>io.github.mfthfzn.entity.Store</class>
+        <class>io.github.mfthfzn.entity.Token</class>
+        <class>io.github.mfthfzn.entity.Transaction</class>
+        <class>io.github.mfthfzn.entity.TransactionItem</class>
         <class>io.github.mfthfzn.entity.User</class>
-        <class>io.github.mfthfzn.entity.TokenSession</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>

@@ -1,5 +1,3 @@
-import { getCookie } from "./cookie.js";
-
 const visibilityLogo = document.querySelector(".visibility-logo");
 const password = document.querySelector("#password");
 
@@ -36,15 +34,20 @@ document
         credentials: "include",
       });
 
-      const data = await response.json();
-      console.log("Response:", data);
+      const responseData = await response.json();
+      console.log("Response:", responseData);
 
-      if (response.status === 200 && data.role == "CASHIER") {
+      if (response.status === 200 && responseData.data.role == "CASHIER") {
         window.location.href = "/app/users/cashiers/dashboard/";
-      } else if (response.status === 200 && data.role == "INVENTORY_STAFF") {
+      } else if (
+        response.status === 200 &&
+        responseData.data.role == "INVENTORY_STAFF"
+      ) {
         window.location.href = "/app/users/inventory/dashboard/";
+      } else if (response.status === 302) {        
+        window.location.reload();
       } else {
-        messageError.textContent = data.message;
+        messageError.textContent = responseData.error.message;
         // emailValue.value = "";
         // passwordValue.value = "";
       }
@@ -56,27 +59,18 @@ document
 
 document.addEventListener("DOMContentLoaded", async function (event) {
   try {
-    const email = getCookie("email");
-    const tokenSession = getCookie("tokenSession");
-    const response = await fetch(
-      `http://127.0.0.1:8080/api/session?email=${email}&token=${tokenSession}`,
-      {
-        method: "GET",
+    const response = await fetch(`http://127.0.0.1:8080/api/session`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (response.status == 200) {
+      const responseData = await response.json();
+      if (responseData.data.role == "CASHIER") {
+        window.location.href = "/app/users/cashiers/dashboard/";
+      } else if (responseData.data.role == "INVENTORY_STAFF") {
+        window.location.href = "/app/users/inventory/dashboard/";
       }
-    );
-
-    const data = await response.json();
-    const role = getCookie("role");
-    console.log(data);
-
-    if (response.status === 200 && role == "CASHIER" && data.expired == false) {
-      window.location.href = "/app/users/cashiers/dashboard/";
-    } else if (
-      response.status === 200 &&
-      role === "INVENTORY_STAFF" &&
-      data.expired == false
-    ) {
-      window.location.href = "/app/users/inventory/dashboard/";
     }
   } catch (error) {
     console.error("Error:", error);

@@ -47,9 +47,9 @@ public class StoreRepositoryImpl implements StoreRepository {
       TypedQuery<Store> store = entityManager.createQuery("SELECT s FROM Store s WHERE s.name = :name", Store.class)
               .setParameter("name", name);
       transaction.commit();
-      List<Store> resultList = store.getResultList();
+      Store result = store.getSingleResult();
 
-      return Optional.ofNullable(resultList.getFirst());
+      return Optional.ofNullable(result);
     } catch (Exception exception) {
       if (transaction.isActive()) transaction.rollback();
       throw new PersistenceException(exception);

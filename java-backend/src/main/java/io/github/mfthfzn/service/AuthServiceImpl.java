@@ -1,12 +1,9 @@
 package io.github.mfthfzn.service;
 
-import io.github.mfthfzn.dto.LoginRequest;
-import io.github.mfthfzn.dto.LoginResponse;
-import io.github.mfthfzn.dto.SessionRequest;
-import io.github.mfthfzn.dto.SessionResponse;
+import io.github.mfthfzn.dto.AuthRequest;
+import io.github.mfthfzn.dto.AuthResponse;
+import io.github.mfthfzn.dto.JwtPayload;
 import io.github.mfthfzn.entity.User;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,37 +14,43 @@ public class AuthServiceImpl implements AuthService {
 
   private final UserServiceImpl userService;
 
-  private final SessionServiceImpl sessionService;
+  private final TokenServiceImpl tokenService;
 
-  public AuthServiceImpl(UserServiceImpl userService, SessionServiceImpl sessionService) {
+  public AuthServiceImpl(UserServiceImpl userService, TokenServiceImpl tokenService) {
     this.userService = userService;
-    this.sessionService = sessionService;
+    this.tokenService = tokenService;
   }
 
   @Override
-  public LoginResponse authenticate(LoginRequest loginRequest) {
+  public AuthResponse authenticate(AuthRequest authRequest) {
     try {
-      LoginResponse loginResponse = new LoginResponse();
-      Optional<User> optionalUser = Optional.ofNullable(userService.getUser(loginRequest.getEmail()));
-      log.info(String.valueOf(optionalUser.isPresent()));
+      AuthResponse authResponse = new AuthResponse();
+      Optional<User> optionalUser = Optional.ofNullable(userService.getUser(authRequest.getEmail()));
 
       if (optionalUser.isPresent()) {
         User user = optionalUser.get();
-        if (loginRequest.getEmail().equals(user.getEmail()) && loginRequest.getPassword().equals(user.getPassword())) {
-          String token = sessionService.generateToken(optionalUser.get());
+        if (authRequest.getEmail().equals(user.getEmail()) && authRequest.getPassword().equals(user.getPassword())) {
+          authResponse.setUserType(user.getRole());
+          authResponse.setAuth(true);
 
-          loginResponse.setAuth(true);
-          loginResponse.setRole(user.getRole());
-          loginResponse.setEmail(user.getEmail());
-          loginResponse.setName(user.getName());
-          loginResponse.setToken(token);
+          JwtPayload jwtPayload =
+                  new JwtPayload(
+                          user.getEmail(),
+                          user.getRole().toString(),
+                          user.getName(),
+                          user.getStore().getId(),
+                          user.getStore().getName()
+                  );
+
+          authResponse.setAccessToken(tokenService.generateAccessToken(jwtPayload));
+          authResponse.setRefreshToken(tokenService.generateRefreshToken(jwtPayload));
         } else {
-          loginResponse.setAuth(false);
+          authResponse.setAuth(false);
         }
       } else {
-        loginResponse.setAuth(false);
+        authResponse.setAuth(false);
       }
-      return loginResponse;
+      return authResponse;
     } catch (PersistenceException persistenceException) {
       throw new PersistenceException(persistenceException);
     }

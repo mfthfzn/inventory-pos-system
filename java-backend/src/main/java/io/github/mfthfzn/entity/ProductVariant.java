@@ -1,6 +1,7 @@
 package io.github.mfthfzn.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class ProductVariant {
 
   @Id
@@ -48,13 +50,4 @@ public class ProductVariant {
   @OneToMany(mappedBy = "productVariant")
   private List<TransactionItem> transactionItems;
 
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "(" +
-            "id = " + id + ", " +
-            "sku = " + sku + ", " +
-            "product = " + product + ", " +
-            "size = " + size + ", " +
-            "color = " + color + ")";
-  }
 }

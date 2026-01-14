@@ -1,29 +1,27 @@
-import { getCookie } from "./cookie.js";
-
 document.addEventListener("DOMContentLoaded", async function (event) {
   event.preventDefault();
 
   try {
-    const role = getCookie("role");
+    const response = await fetch(`http://127.0.0.1:8080/api/session`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-    if (role != "CASHIER") {
-      window.location.href = "/app/users/login";
-    }
+    const responseData = await response.json();
+
+    const names = responseData.data.name;
+    const role = responseData.data.role;
+    const nameOfStore = responseData.data.store_name;
+
+    const profileName = document.querySelector(".profile-name");
+    const profileRole = document.querySelector(".profile-role");
+    const storeName = document.querySelector(".store-name");
+
+    profileName.textContent = names;
+    profileRole.textContent = role;
+    storeName.textContent = nameOfStore;
   } catch (error) {
     console.error("Error:", error);
-    window.location.href = "/app/users/login";
+    window.location.href = "/app/users/login/";
   }
-
-  let fullname = '';
-  let names = getCookie("name").split("-");
-  names.forEach(n => 
-    fullname = fullname + " " + n
-  )
-  let role = getCookie("role");
-
-  const profileName = document.querySelector(".profile-name");
-  const profileRole = document.querySelector(".profile-role");
-
-  profileName.textContent = fullname;
-  profileRole.textContent = role;
 });

@@ -10,7 +10,7 @@
 
         <!-- Entity Classes -->
         <class>io.github.mfthfzn.entity.User</class>
-        <class>io.github.mfthfzn.entity.TokenSession</class>
+        <class>io.github.mfthfzn.entity.Token</class>
         <class>io.github.mfthfzn.entity.Store</class>
 
         <properties>

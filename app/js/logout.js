@@ -1,13 +1,9 @@
-import {getCookie} from "./cookie.js"
-
 document
   .getElementById("exitButton")
   .addEventListener("click", async function() {
     try {
-      const email = getCookie("email");
-      const tokenSession = getCookie("tokenSession");
       const response = await fetch(
-        `http://127.0.0.1:8080/api/session?email=${email}&token=${tokenSession}`,
+        `http://127.0.0.1:8080/api/session`,
         {
           method: "DELETE",
           headers: {
@@ -19,7 +15,7 @@ document
 
       const data = await response.json();
 
-      if (response.status === 200 && data.removed == true) {
+      if (response.status === 200) {
         window.location.href = "/app/users/login";
       }
     } catch (error) {

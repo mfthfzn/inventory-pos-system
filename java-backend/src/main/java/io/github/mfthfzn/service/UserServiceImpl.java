@@ -1,6 +1,5 @@
 package io.github.mfthfzn.service;
 
-import io.github.mfthfzn.dto.LoginRequest;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.repository.UserRepositoryImpl;
 

@@ -1,6 +1,7 @@
 package io.github.mfthfzn.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Store {
 
   @Id
@@ -35,13 +37,4 @@ public class Store {
   @OneToMany(mappedBy = "store")
   private List<Stock> stocks;
 
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "(" +
-            "id = " + id + ", " +
-            "name = " + name + ", " +
-            "address = " + address + ", " +
-            "createdAt = " + createdAt + ", " +
-            "updatedAt = " + updatedAt + ")";
-  }
 }

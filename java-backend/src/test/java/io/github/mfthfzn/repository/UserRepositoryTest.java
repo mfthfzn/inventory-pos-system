@@ -1,6 +1,5 @@
 package io.github.mfthfzn.repository;
 
-import io.github.mfthfzn.entity.Name;
 import io.github.mfthfzn.entity.Store;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.enums.UserType;
@@ -41,16 +40,11 @@ public class UserRepositoryTest extends RepositoryTest {
     store.setUpdatedAt(LocalDateTime.now());
     entityManager.persist(store);
 
-    Name name = new Name();
-    name.setFirstName("Eko");
-    name.setMiddleName("Kurniawan");
-    name.setLastName("Khannedy");
-
     User user = new User();
     String email = "eko@gmail.com";
     String password = "rahasia";
     user.setEmail(email);
-    user.setName(name);
+    user.setName("eko kurniawan khannedy");
     user.setPassword(password);
     user.setRole(UserType.CASHIER);
     user.setCreatedAt(LocalDateTime.now());

@@ -1,11 +1,9 @@
 package io.github.mfthfzn.repository;
 
-import io.github.mfthfzn.entity.TokenSession;
 import io.github.mfthfzn.entity.User;
 import jakarta.persistence.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Slf4j

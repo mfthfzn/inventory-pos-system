@@ -2,10 +2,7 @@ package io.github.mfthfzn.entity;
 
 import io.github.mfthfzn.enums.StockMovementType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
+@AllArgsConstructor
 public class StockMovement {
 
   @Id

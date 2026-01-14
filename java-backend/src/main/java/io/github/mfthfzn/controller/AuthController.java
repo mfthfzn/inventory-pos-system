@@ -1,14 +1,18 @@
 package io.github.mfthfzn.controller;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.mfthfzn.dto.LoginRequest;
-import io.github.mfthfzn.dto.LoginResponse;
-import io.github.mfthfzn.dto.SessionRequest;
-import io.github.mfthfzn.dto.SessionResponse;
-import io.github.mfthfzn.repository.TokenSessionRepositoryImpl;
+import io.github.mfthfzn.dto.AuthRequest;
+import io.github.mfthfzn.dto.AuthResponse;
+import io.github.mfthfzn.dto.JwtPayload;
+import io.github.mfthfzn.dto.UserResponse;
+import io.github.mfthfzn.exception.AccessTokenExpiredException;
+import io.github.mfthfzn.exception.RefreshTokenExpiredException;
+import io.github.mfthfzn.exception.TokenRequiredException;
+import io.github.mfthfzn.repository.TokenRepositoryImpl;
 import io.github.mfthfzn.repository.UserRepositoryImpl;
 import io.github.mfthfzn.service.AuthServiceImpl;
-import io.github.mfthfzn.service.SessionServiceImpl;
+import io.github.mfthfzn.service.TokenServiceImpl;
 import io.github.mfthfzn.service.UserServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
 import io.github.mfthfzn.util.JsonUtil;
@@ -25,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.Set;
 
 @WebServlet(urlPatterns = "/api/session")
@@ -36,14 +41,14 @@ public class AuthController extends HttpServlet {
                   new UserRepositoryImpl(JpaUtil.getEntityManagerFactory())
           );
 
-  private final SessionServiceImpl sessionService =
-          new SessionServiceImpl(
-                  new TokenSessionRepositoryImpl(JpaUtil.getEntityManagerFactory())
+  private final TokenServiceImpl tokenService =
+          new TokenServiceImpl(
+                  new TokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
           );
 
   private final AuthServiceImpl authService =
           new AuthServiceImpl(
-                  userService, sessionService
+                  userService, tokenService
           );
 
   ObjectMapper objectMapper = JsonUtil.getObjectMapper();
@@ -62,129 +67,277 @@ public class AuthController extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    SessionRequest sessionRequest = new SessionRequest(req.getParameter("email"), req.getParameter("token"));
-    Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(sessionRequest);
+    String accessToken = null;
+    String refreshToken = null;
+    resp.setContentType("application/json");
+    UserResponse userResponse = new UserResponse();
 
-    SessionResponse sessionResponse = new SessionResponse();
-    String response;
-    PrintWriter writer = resp.getWriter();
+    if (req.getCookies() != null) {
+      try {
+        for (Cookie cookie : req.getCookies()) {
+          if (cookie.getName().equals("access_token")) accessToken = cookie.getValue();
+          if (cookie.getName().equals("refresh_token")) refreshToken = cookie.getValue();
+        }
 
-    if (!constraintViolations.isEmpty()) {
-      for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
-        sessionResponse.setMessage(constraintViolation.getMessage());
-        break;
-      }
-      sessionResponse.setExpired(true);
-      response = objectMapper.writeValueAsString(sessionResponse);
-      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      writer.println(response);
-      return;
-    }
+        if (accessToken == null || refreshToken == null || accessToken.isEmpty() || refreshToken.isEmpty()) {
+          throw new TokenRequiredException("Access token and refresh token required");
+        }
 
-    try {
-      sessionResponse = sessionService.getSession(sessionRequest);
+        tokenService.verifyAccessToken(accessToken);
 
-      resp.setContentType("application/json");
-      if (!sessionResponse.isExpired()) {
-        sessionResponse.setMessage("Session ditemukan");
-        response = objectMapper.writeValueAsString(sessionResponse);
-        writer.println(response);
+        JwtPayload jwtPayload = tokenService.getUserFromToken(accessToken);
+        userResponse.setMessage("Access token is valid");
+        userResponse.setData(Map.of(
+                "email", jwtPayload.getEmail(),
+                "name", jwtPayload.getName(),
+                "role", jwtPayload.getRole(),
+                "store_name", jwtPayload.getStoreName()
+        ));
+        String response = objectMapper.writeValueAsString(userResponse);
         resp.setStatus(HttpServletResponse.SC_OK);
-      } else {
-        sessionResponse.setMessage("Session tidak ditemukan");
+        resp.getWriter().println(response);
+      } catch (AccessTokenExpiredException accessTokenExpiredException) {
+        try {
+
+          tokenService.verifyRefreshToken(refreshToken);
+
+          JwtPayload user = tokenService.getUserFromToken(refreshToken);
+
+          // cek ke database
+          String refreshTokenFromDatabase = tokenService.getRefreshToken(user.getEmail());
+
+          if (!refreshTokenFromDatabase.equals(refreshToken)) throw new JWTVerificationException("Refresh Token Invalid");
+
+          JwtPayload jwtPayload = tokenService.getUserFromToken(accessToken);
+          String newAccessToken = tokenService.generateAccessToken(jwtPayload);
+
+          // Cookie for access-token
+          Cookie acessCookie = new Cookie("access_token", newAccessToken);
+          acessCookie.setHttpOnly(true);
+          acessCookie.setSecure(false);
+          acessCookie.setPath("/");
+          acessCookie.setMaxAge(60 * 60 * 24);
+          resp.addCookie(acessCookie);
+
+          userResponse.setMessage("Access token is valid");
+          userResponse.setData(Map.of(
+                  "email", jwtPayload.getEmail(),
+                  "name", jwtPayload.getName(),
+                  "role", jwtPayload.getRole(),
+                  "store_name", jwtPayload.getStoreName()
+          ));
+          String response = objectMapper.writeValueAsString(userResponse);
+          resp.setStatus(HttpServletResponse.SC_OK);
+          resp.getWriter().println(response);
+        }
+        catch (RefreshTokenExpiredException refreshTokenExpiredException) {
+
+          JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
+
+          tokenService.removeRefreshToken(jwtPayload, refreshToken);
+
+          Cookie acessCookie = new Cookie("access_token", "");
+          acessCookie.setHttpOnly(true);
+          acessCookie.setSecure(false);
+          acessCookie.setPath("/");
+          acessCookie.setMaxAge(0);
+          resp.addCookie(acessCookie);
+
+          // Cookie for refresh-token
+          Cookie refreshCookie = new Cookie("refresh_token", "");
+          refreshCookie.setHttpOnly(true);
+          refreshCookie.setSecure(false);
+          refreshCookie.setPath("/");
+          refreshCookie.setMaxAge(0);
+          resp.addCookie(refreshCookie);
+
+          userResponse.setMessage("Failed to get data");
+          userResponse.setError(Map.of(
+                  "message", refreshTokenExpiredException.getMessage()
+          ));
+          resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          String response = objectMapper.writeValueAsString(userResponse);
+          resp.getWriter().println(response);
+        } catch (JWTVerificationException jwtVerificationException) {
+
+          JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
+
+          tokenService.removeRefreshToken(jwtPayload, refreshToken);
+
+          Cookie acessCookie = new Cookie("access_token", "");
+          acessCookie.setHttpOnly(true);
+          acessCookie.setSecure(false);
+          acessCookie.setPath("/");
+          acessCookie.setMaxAge(0);
+          resp.addCookie(acessCookie);
+
+          // Cookie for refresh-token
+          Cookie refreshCookie = new Cookie("refresh_token", "");
+          refreshCookie.setHttpOnly(true);
+          refreshCookie.setSecure(false);
+          refreshCookie.setPath("/");
+          refreshCookie.setMaxAge(0);
+          resp.addCookie(refreshCookie);
+
+          userResponse.setMessage("Failed to get data");
+          userResponse.setError(Map.of(
+                  "message", jwtVerificationException.getMessage()
+          ));
+          resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+          String response = objectMapper.writeValueAsString(userResponse);
+          resp.getWriter().println(response);
+        }
+      } catch (TokenRequiredException tokenRequiredException) {
+
+        userResponse.setMessage("Failed to get data");
+        userResponse.setError(Map.of(
+                "message", tokenRequiredException.getMessage()
+        ));
         resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response = objectMapper.writeValueAsString(sessionResponse);
-        writer.println(response);
+        String response = objectMapper.writeValueAsString(userResponse);
+        resp.getWriter().println(response);
+
+      } catch (JWTVerificationException jwtVerificationException) {
+
+        JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
+
+        tokenService.removeRefreshToken(jwtPayload, refreshToken);
+
+        Cookie acessCookie = new Cookie("access_token", "");
+        acessCookie.setHttpOnly(true);
+        acessCookie.setSecure(false);
+        acessCookie.setPath("/");
+        acessCookie.setMaxAge(0);
+        resp.addCookie(acessCookie);
+
+        // Cookie for refresh-token
+        Cookie refreshCookie = new Cookie("refresh_token", "");
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(0);
+        resp.addCookie(refreshCookie);
+
+        userResponse.setMessage("Failed to get data");
+        userResponse.setError(Map.of(
+                "message", jwtVerificationException.getMessage()
+        ));
+        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        String response = objectMapper.writeValueAsString(userResponse);
+        resp.getWriter().println(response);
       }
-    } catch (PersistenceException persistenceException) {
-      sessionResponse.setMessage("Terjadi kesalahan di server database.");
-      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      response = objectMapper.writeValueAsString(sessionResponse);
-      writer.println(response);
+    } else {
+      userResponse.setMessage("Failed to get data");
+      userResponse.setError(Map.of(
+              "message", "Access token and refresh token required"
+      ));
+      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      String response = objectMapper.writeValueAsString(userResponse);
+      resp.getWriter().println(response);
     }
   }
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    LoginRequest loginRequest = new LoginRequest(req.getParameter("email"), req.getParameter("password"));
-    Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(loginRequest);
-    LoginResponse loginResponse = new LoginResponse();
+    AuthRequest authRequest = new AuthRequest(req.getParameter("email"), req.getParameter("password"));
+    Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(authRequest);
+    AuthResponse authResponse = new AuthResponse();
     String response;
     PrintWriter writer = resp.getWriter();
     resp.setContentType("application/json");
 
     if (!constraintViolations.isEmpty()) {
       for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
-        loginResponse.setMessage(constraintViolation.getMessage());
+        authResponse.setMessage("Data request invalid");
+        authResponse.setError(Map.of(
+                "message", constraintViolation.getMessage()
+        ));
         break;
       }
-      response = objectMapper.writeValueAsString(loginResponse);
+      response = objectMapper.writeValueAsString(authResponse);
       resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       writer.println(response);
       return;
     }
+    authResponse.setMessage("");
 
     try {
-      loginResponse = authService.authenticate(loginRequest);
-      if (!loginResponse.isAuth()) {
-        loginResponse.setMessage("Email atau password yang Anda masukkan salah!");
-        response = objectMapper.writeValueAsString(loginResponse);
+      authResponse = authService.authenticate(authRequest);
+      if (!authResponse.isAuth()) {
+        authResponse.setMessage("Login failed");
+        authResponse.setError(Map.of(
+                "message", "Email or password incorrect!"
+        ));
+        response = objectMapper.writeValueAsString(authResponse);
         writer.println(response);
         resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       } else {
-        String token;
-        if ((token = loginResponse.getToken()) != null) {
-          log(token);
-          // Cookie for session-token
-          Cookie cookieToken = new Cookie("tokenSession", token);
-          cookieToken.setHttpOnly(false);
-          cookieToken.setSecure(false);
-          cookieToken.setPath("/");
-          cookieToken.setMaxAge(60 * 60 * 24);
-          resp.addCookie(cookieToken);
+        String refreshToken = authResponse.getRefreshToken();
+        String accessToken = authResponse.getAccessToken();
+        if (accessToken != null && refreshToken != null) {
 
-          // Cookie for email
-          Cookie cookieEmail = new Cookie("email", loginResponse.getEmail());
-          cookieEmail.setHttpOnly(false);
-          cookieEmail.setSecure(false);
-          cookieEmail.setMaxAge(60 * 60 * 24);
-          cookieEmail.setPath("/");
-          resp.addCookie(cookieEmail);
+          // Cookie for access-token
+          Cookie acessCookie = new Cookie("access_token", accessToken);
+          acessCookie.setHttpOnly(true);
+          acessCookie.setSecure(false);
+          acessCookie.setPath("/");
+          acessCookie.setMaxAge(60 * 60 * 24);
+          resp.addCookie(acessCookie);
 
-          // Cookie for email
-          Cookie cookieName = new Cookie("name", loginResponse.getName().getFirstName() + "-" +
-                  loginResponse.getName().getMiddleName() + "-" + loginResponse.getName().getLastName());
-          cookieName.setHttpOnly(false);
-          cookieName.setSecure(false);
-          cookieName.setMaxAge(60 * 60 * 24);
-          cookieName.setPath("/");
-          resp.addCookie(cookieName);
-
-          // Cookie for role
-          Cookie cookieRole = new Cookie("role", loginResponse.getRole().toString());
-          cookieRole.setHttpOnly(false);
-          cookieRole.setSecure(false);
-          cookieRole.setMaxAge(60 * 60 * 24);
-          cookieRole.setPath("/");
-          resp.addCookie(cookieRole);
+          // Cookie for refresh-token
+          Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
+          refreshCookie.setHttpOnly(true);
+          refreshCookie.setSecure(false);
+          refreshCookie.setPath("/");
+          refreshCookie.setMaxAge(60 * 60 * 24 * 30);
+          resp.addCookie(refreshCookie);
 
           resp.setStatus(HttpServletResponse.SC_OK);
-          loginResponse.setMessage("Berhasil login!");
+          authResponse.setMessage("Login Success!");
+          authResponse.setData(Map.of(
+                  "role", authResponse.getUserType().toString()
+          ));
 
-          response = objectMapper.writeValueAsString(loginResponse);
+          response = objectMapper.writeValueAsString(authResponse);
           writer.println(response);
         }
       }
     } catch (PersistenceException persistenceException) {
       if (isDuplicateEntryError(persistenceException)) {
-        loginResponse.setMessage("Token session sudah ada.");
+        authResponse.setMessage("Failed login");
+        authResponse.setError(Map.of(
+                "message", "The session token already exists."
+        ));
         resp.setStatus(HttpServletResponse.SC_FOUND);
-      }  else {
-        loginResponse.setMessage("Terjadi kesalahan di server database.");
+
+        String refreshToken = tokenService.getRefreshToken(req.getParameter("email"));
+        JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
+        String accessToken = tokenService.generateAccessToken(jwtPayload);
+
+        // Cookie for refresh-token
+        Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(60 * 60 * 24 * 30);
+        resp.addCookie(refreshCookie);
+
+        // Cookie for access-token
+        Cookie acessCookie = new Cookie("access_token", accessToken);
+        acessCookie.setHttpOnly(true);
+        acessCookie.setSecure(false);
+        acessCookie.setPath("/");
+        acessCookie.setMaxAge(60 * 60 * 24);
+        resp.addCookie(acessCookie);
+      } else {
+        authResponse.setMessage("Failed login");
+        authResponse.setError(Map.of(
+                "message", "An error occurred on the database server."
+        ));
         resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       }
-      response = objectMapper.writeValueAsString(loginResponse);
+      response = objectMapper.writeValueAsString(authResponse);
       writer.println(response);
     }
   }
@@ -192,76 +345,71 @@ public class AuthController extends HttpServlet {
   @Override
   protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    SessionRequest sessionRequest = new SessionRequest(req.getParameter("email"), req.getParameter("token"));
-    Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(sessionRequest);
+    String accessToken = null;
+    String refreshToken = null;
+    resp.setContentType("application/json");
 
-    SessionResponse sessionResponse = new SessionResponse();
-    String response;
-    PrintWriter writer = resp.getWriter();
+    if (req.getCookies() != null) {
+      try {
+        for (Cookie cookie : req.getCookies()) {
+          if (cookie.getName().equals("access_token")) {
+            accessToken = cookie.getValue();
+          }
+          if (cookie.getName().equals("refresh_token")) {
+            refreshToken = cookie.getValue();
+          }
+        }
 
-    if (!constraintViolations.isEmpty()) {
-      for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
-        sessionResponse.setMessage(constraintViolation.getMessage());
-        break;
-      }
-      sessionResponse.setExpired(true);
-      response = objectMapper.writeValueAsString(sessionResponse);
-      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      writer.println(response);
-      return;
-    }
-    try {
-      sessionResponse = sessionService.removeSession(sessionRequest);
-      resp.setContentType("application/json");
-      if (sessionResponse.isRemoved()) {
-        sessionResponse.setMessage("Session berhasil dihapus");
+        if (accessToken == null || refreshToken == null) {
+          throw new JWTVerificationException("Access token and refresh token required");
+        }
 
-        // DELETE Cookie for session-token
-        Cookie cookieToken = new Cookie("tokenSession", "");
-        cookieToken.setHttpOnly(false);
-        cookieToken.setSecure(false);
-        cookieToken.setPath("/");
-        cookieToken.setMaxAge(0);
-        resp.addCookie(cookieToken);
+        JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
+        tokenService.removeRefreshToken(jwtPayload, refreshToken);
 
-        // DELETE Cookie for email
-        Cookie cookieEmail = new Cookie("email", "");
-        cookieEmail.setHttpOnly(false);
-        cookieEmail.setSecure(false);
-        cookieEmail.setPath("/");
-        cookieEmail.setMaxAge(0);
-        resp.addCookie(cookieEmail);
+        Cookie acessCookie = new Cookie("access_token", accessToken);
+        acessCookie.setHttpOnly(true);
+        acessCookie.setSecure(false);
+        acessCookie.setPath("/");
+        acessCookie.setMaxAge(0);
+        resp.addCookie(acessCookie);
 
-        // DELETE Cookie for email
-        Cookie cookieName = new Cookie("name", "");
-        cookieName.setHttpOnly(false);
-        cookieName.setSecure(false);
-        cookieName.setPath("/");
-        cookieName.setMaxAge(0);
-        resp.addCookie(cookieName);
+        // Cookie for refresh-token
+        Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setSecure(false);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(0);
+        resp.addCookie(refreshCookie);
 
-        // DELETE Cookie for role
-        Cookie cookieRole = new Cookie("role", "");
-        cookieRole.setHttpOnly(false);
-        cookieRole.setSecure(false);
-        cookieRole.setPath("/");
-        cookieRole.setMaxAge(0);
-        resp.addCookie(cookieRole);
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setMessage("Success to logout");
+        authResponse.setData(Map.of(
+                "message", "Success to delete jwt token"
+        ));
 
-        response = objectMapper.writeValueAsString(sessionResponse);
-        writer.println(response);
+        String response = objectMapper.writeValueAsString(authResponse);
+        resp.getWriter().println(response);
         resp.setStatus(HttpServletResponse.SC_OK);
-      } else {
-        sessionResponse.setMessage("Session tidak berhasil dihapus");
-        resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response = objectMapper.writeValueAsString(sessionResponse);
-        writer.println(response);
+      } catch (JWTVerificationException | PersistenceException exception) {
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setMessage("Failed to logout");
+        authResponse.setError(Map.of(
+                "message", exception.getMessage()
+        ));
+        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        String response = objectMapper.writeValueAsString(authResponse);
+        resp.getWriter().println(response);
       }
-    } catch (PersistenceException persistenceException) {
-      sessionResponse.setMessage("Terjadi kesalahan di server database.");
-      resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-      response = objectMapper.writeValueAsString(sessionResponse);
-      writer.println(response);
+    } else {
+      AuthResponse authResponse = new AuthResponse();
+      authResponse.setMessage("Failed to logout");
+      authResponse.setError(Map.of(
+              "message", "Access token and refresh token required"
+      ));
+      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      String response = objectMapper.writeValueAsString(authResponse);
+      resp.getWriter().println(response);
     }
 
   }
