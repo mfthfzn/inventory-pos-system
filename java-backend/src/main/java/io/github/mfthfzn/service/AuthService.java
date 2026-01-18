@@ -1,10 +1,10 @@
 package io.github.mfthfzn.service;
 
-import io.github.mfthfzn.dto.AuthRequest;
-import io.github.mfthfzn.dto.AuthResponse;
+import io.github.mfthfzn.dto.LoginRequest;
+import io.github.mfthfzn.dto.LoginResponse;
 
 public interface AuthService {
 
-  AuthResponse authenticate(AuthRequest authRequest);
+  LoginResponse authenticate(LoginRequest loginRequest);
 
 }

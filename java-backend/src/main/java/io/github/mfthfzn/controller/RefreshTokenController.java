@@ -2,8 +2,6 @@ package io.github.mfthfzn.controller;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import io.github.mfthfzn.dto.JwtPayload;
-import io.github.mfthfzn.dto.UserResponse;
-import io.github.mfthfzn.exception.AccessTokenExpiredException;
 import io.github.mfthfzn.exception.TokenRequiredException;
 import io.github.mfthfzn.repository.TokenRepositoryImpl;
 import io.github.mfthfzn.service.TokenServiceImpl;
@@ -12,11 +10,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.Map;
 
-@WebServlet(urlPatterns = "/api/auth/session")
-public class SessionController extends BaseController {
+@WebServlet(urlPatterns = "/api/auth/refresh")
+public class RefreshTokenController extends BaseController {
 
   private final TokenServiceImpl tokenService =
           new TokenServiceImpl(
@@ -32,26 +31,31 @@ public class SessionController extends BaseController {
       if (accessToken == null || refreshToken == null || accessToken.isEmpty() || refreshToken.isEmpty()) {
         throw new TokenRequiredException("Access token and refresh token required");
       }
+      tokenService.verifyRefreshToken(refreshToken);
 
-      tokenService.verifyAccessToken(accessToken);
-      JwtPayload jwtPayload = tokenService.getUserFromToken(accessToken);
-      UserResponse userResponse = new UserResponse(
-              jwtPayload.getEmail(),
-              jwtPayload.getName(),
-              jwtPayload.getRole(),
-              jwtPayload.getStoreName()
+      // cek ke database
+      String refreshTokenFromDatabase = tokenService.getRefreshToken(
+              tokenService.getUserFromToken(refreshToken).getEmail()
       );
-      sendSuccess(resp, HttpServletResponse.SC_OK, "Success get data", userResponse);
 
-    } catch (AccessTokenExpiredException accessTokenExpiredException) {
+      if (!refreshTokenFromDatabase.equals(refreshToken)) throw new JWTVerificationException("Refresh Token Invalid");
 
-      sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Failed to get data", Map.of(
-              "message", accessTokenExpiredException.getMessage()
+      JwtPayload jwtPayload = tokenService.getUserFromToken(accessToken);
+      String newAccessToken = tokenService.generateAccessToken(jwtPayload);
+
+      // Cookie for access-token
+      addCookie(resp, "access_token", newAccessToken, 60 * 60);
+      sendSuccess(resp, HttpServletResponse.SC_OK, "Success get access token", Map.of(
+              "message", "Success add cookie access_token"
       ));
-
+    } catch (TokenRequiredException tokenRequiredException) {
+      sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Failed to get data", Map.of(
+              "message", tokenRequiredException.getMessage()
+      ));
     } catch (JWTVerificationException jwtVerificationException) {
       String refreshToken = getCookieValue(req, "refresh_token");
       tokenService.removeRefreshToken(tokenService.getUserFromToken(refreshToken), refreshToken);
+
       removeCookie(resp, "access_token");
       removeCookie(resp, "refresh_token");
 

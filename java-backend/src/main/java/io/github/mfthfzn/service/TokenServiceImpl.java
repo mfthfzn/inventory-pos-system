@@ -12,7 +12,6 @@ import io.github.mfthfzn.exception.AccessTokenExpiredException;
 import io.github.mfthfzn.exception.RefreshTokenExpiredException;
 import io.github.mfthfzn.repository.TokenRepositoryImpl;
 import jakarta.persistence.PersistenceException;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -38,7 +37,7 @@ public class TokenServiceImpl implements TokenService {
             .withClaim("store_id", jwtPayload.getStoreId())
             .withClaim("store_name", jwtPayload.getStoreName())
             .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofHours(1)))
+            .withExpiresAt(Instant.now().plus(Duration.ofMinutes(1)))
             .sign(algorithm);
   }
 
@@ -51,7 +50,7 @@ public class TokenServiceImpl implements TokenService {
             .withClaim("store_id", jwtPayload.getStoreId())
             .withClaim("store_name", jwtPayload.getStoreName())
             .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofDays(7)))
+            .withExpiresAt(Instant.now().plus(Duration.ofMinutes(5)))
             .sign(algorithm);
 
     Token token = new Token();

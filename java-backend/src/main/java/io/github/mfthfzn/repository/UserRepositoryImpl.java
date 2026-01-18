@@ -9,7 +9,7 @@ import java.util.Optional;
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
 
-  private EntityManagerFactory entityManagerFactory;
+  private final EntityManagerFactory entityManagerFactory;
 
   public UserRepositoryImpl(EntityManagerFactory entityManagerFactory) {
     this.entityManagerFactory = entityManagerFactory;
@@ -19,15 +19,17 @@ public class UserRepositoryImpl implements UserRepository {
   public Optional<User> findUserByEmail(String email) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
-    try(entityManager) {
+    try {
       transaction.begin();
       User user = entityManager.find(User.class, email);
       transaction.commit();
-      return Optional.ofNullable(user);
+      return Optional.of(user);
     } catch (Exception exception) {
       if (transaction.isActive()) transaction.rollback();
       log.error(exception.getMessage());
       throw new PersistenceException(exception);
+    } finally {
+      entityManager.close();
     }
   }
 

@@ -7,7 +7,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthRequest {
+public class LoginRequest {
 
   @NotBlank(message = "Email cannot blank")
   @Email(message = "Email must be valid valid")

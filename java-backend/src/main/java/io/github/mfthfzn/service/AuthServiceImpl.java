@@ -1,9 +1,11 @@
 package io.github.mfthfzn.service;
 
-import io.github.mfthfzn.dto.AuthRequest;
-import io.github.mfthfzn.dto.AuthResponse;
+import io.github.mfthfzn.dto.LoginRequest;
+import io.github.mfthfzn.dto.LoginResponse;
 import io.github.mfthfzn.dto.JwtPayload;
 import io.github.mfthfzn.entity.User;
+import io.github.mfthfzn.exception.AuthenticateException;
+import io.github.mfthfzn.repository.UserRepositoryImpl;
 import jakarta.persistence.PersistenceException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,27 +14,24 @@ import java.util.Optional;
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-  private final UserServiceImpl userService;
+  private final UserRepositoryImpl userRepository;
 
   private final TokenServiceImpl tokenService;
 
-  public AuthServiceImpl(UserServiceImpl userService, TokenServiceImpl tokenService) {
-    this.userService = userService;
+  public AuthServiceImpl(UserRepositoryImpl userRepository, TokenServiceImpl tokenService) {
+    this.userRepository = userRepository;
     this.tokenService = tokenService;
   }
 
   @Override
-  public AuthResponse authenticate(AuthRequest authRequest) {
+  public LoginResponse authenticate(LoginRequest loginRequest) {
     try {
-      AuthResponse authResponse = new AuthResponse();
-      Optional<User> optionalUser = Optional.ofNullable(userService.getUser(authRequest.getEmail()));
+      LoginResponse loginResponse = new LoginResponse();
+      Optional<User> userByEmail = userRepository.findUserByEmail(loginRequest.getEmail());
 
-      if (optionalUser.isPresent()) {
-        User user = optionalUser.get();
-        if (authRequest.getEmail().equals(user.getEmail()) && authRequest.getPassword().equals(user.getPassword())) {
-          authResponse.setUserType(user.getRole());
-          authResponse.setAuth(true);
-
+      if (userByEmail.isPresent()) {
+        User user = userByEmail.get();
+        if (loginRequest.getEmail().equals(user.getEmail()) && loginRequest.getPassword().equals(user.getPassword())) {
           JwtPayload jwtPayload =
                   new JwtPayload(
                           user.getEmail(),
@@ -41,18 +40,17 @@ public class AuthServiceImpl implements AuthService {
                           user.getStore().getId(),
                           user.getStore().getName()
                   );
-
-          authResponse.setAccessToken(tokenService.generateAccessToken(jwtPayload));
-          authResponse.setRefreshToken(tokenService.generateRefreshToken(jwtPayload));
-        } else {
-          authResponse.setAuth(false);
+          loginResponse.setAccessToken(tokenService.generateAccessToken(jwtPayload));
+          loginResponse.setRefreshToken(tokenService.generateRefreshToken(jwtPayload));
+          loginResponse.setUser(user);
+          return loginResponse;
         }
-      } else {
-        authResponse.setAuth(false);
       }
-      return authResponse;
+      throw new AuthenticateException("Email or Password incorrect!");
     } catch (PersistenceException persistenceException) {
       throw new PersistenceException(persistenceException);
+    } catch (AuthenticateException authenticateException) {
+      throw new AuthenticateException(authenticateException.getMessage());
     }
   }
 

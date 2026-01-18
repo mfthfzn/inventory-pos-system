@@ -1,17 +1,20 @@
 package io.github.mfthfzn.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
-
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
 
-  private String message;
+  private String email;
 
-  private Map<String, Object> data;
+  private String name;
 
-  private Map<String, Object> error;
+  private String role;
+
+  private String storeName;
+
 }

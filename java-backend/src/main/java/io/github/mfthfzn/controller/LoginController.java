@@ -1,38 +1,28 @@
 package io.github.mfthfzn.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.mfthfzn.dto.AuthRequest;
-import io.github.mfthfzn.dto.AuthResponse;
-import io.github.mfthfzn.dto.JwtPayload;
+import io.github.mfthfzn.dto.*;
+import io.github.mfthfzn.exception.AuthenticateException;
 import io.github.mfthfzn.repository.TokenRepositoryImpl;
 import io.github.mfthfzn.repository.UserRepositoryImpl;
 import io.github.mfthfzn.service.AuthServiceImpl;
 import io.github.mfthfzn.service.TokenServiceImpl;
-import io.github.mfthfzn.service.UserServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
-import io.github.mfthfzn.util.JsonUtil;
 import io.github.mfthfzn.util.ValidatorUtil;
 import jakarta.persistence.PersistenceException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
-
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Set;
 
 @WebServlet(urlPatterns = "/api/auth/login")
-public class LoginController extends HttpServlet {
+public class LoginController extends BaseController {
 
-  private final UserServiceImpl userService =
-          new UserServiceImpl(
-                  new UserRepositoryImpl(JpaUtil.getEntityManagerFactory())
-          );
+  private final UserRepositoryImpl userRepository =
+          new UserRepositoryImpl(JpaUtil.getEntityManagerFactory());
 
   private final TokenServiceImpl tokenService =
           new TokenServiceImpl(
@@ -41,10 +31,8 @@ public class LoginController extends HttpServlet {
 
   private final AuthServiceImpl authService =
           new AuthServiceImpl(
-                  userService, tokenService
+                  userRepository, tokenService
           );
-
-  ObjectMapper objectMapper = JsonUtil.getObjectMapper();
 
   private boolean isDuplicateEntryError(Throwable throwable) {
     Throwable current = throwable;
@@ -61,105 +49,57 @@ public class LoginController extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-    AuthRequest authRequest = new AuthRequest(req.getParameter("email"), req.getParameter("password"));
-    Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(authRequest);
-    AuthResponse authResponse = new AuthResponse();
-    String response;
-    PrintWriter writer = resp.getWriter();
-    resp.setContentType("application/json");
+    LoginRequest loginRequest = new LoginRequest(req.getParameter("email"), req.getParameter("password"));
+    Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(loginRequest);
 
     if (!constraintViolations.isEmpty()) {
       for (ConstraintViolation<Object> constraintViolation : constraintViolations) {
-        authResponse.setMessage("Data request invalid");
-        authResponse.setError(Map.of(
+        sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Data request invalid", Map.of(
                 "message", constraintViolation.getMessage()
         ));
         break;
       }
-      response = objectMapper.writeValueAsString(authResponse);
-      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      writer.println(response);
       return;
     }
-    authResponse.setMessage("");
 
     try {
-      authResponse = authService.authenticate(authRequest);
-      if (!authResponse.isAuth()) {
-        authResponse.setMessage("Login failed");
-        authResponse.setError(Map.of(
-                "message", "Email or password incorrect!"
-        ));
-        response = objectMapper.writeValueAsString(authResponse);
-        writer.println(response);
-        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      } else {
-        String refreshToken = authResponse.getRefreshToken();
-        String accessToken = authResponse.getAccessToken();
-        if (accessToken != null && refreshToken != null) {
+      LoginResponse loginResponse = authService.authenticate(loginRequest);
+      String refreshToken = loginResponse.getRefreshToken();
+      String accessToken = loginResponse.getAccessToken();
 
-          // Cookie for access-token
-          Cookie acessCookie = new Cookie("access_token", accessToken);
-          acessCookie.setHttpOnly(true);
-          acessCookie.setSecure(false);
-          acessCookie.setPath("/");
-          acessCookie.setMaxAge(60 * 60 * 24);
-          resp.addCookie(acessCookie);
+      if (accessToken != null && refreshToken != null) {
+        // Cookie for access-token
+        addCookie(resp, "access_token", accessToken, 60 * 60);
+        // Cookie for refresh-token
+        addCookie(resp, "refresh_token", refreshToken, 60 * 60 * 24 * 7);
 
-          // Cookie for refresh-token
-          Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
-          refreshCookie.setHttpOnly(true);
-          refreshCookie.setSecure(false);
-          refreshCookie.setPath("/");
-          refreshCookie.setMaxAge(60 * 60 * 24 * 30);
-          resp.addCookie(refreshCookie);
-
-          resp.setStatus(HttpServletResponse.SC_OK);
-          authResponse.setMessage("Login Success!");
-          authResponse.setData(Map.of(
-                  "role", authResponse.getUserType().toString()
-          ));
-
-          response = objectMapper.writeValueAsString(authResponse);
-          writer.println(response);
-        }
+        UserResponse userResponse = new UserResponse();
+        userResponse.setRole(loginResponse.getUser().getRole().toString());
+        sendSuccess(resp, HttpServletResponse.SC_OK, "Login success", userResponse);
       }
     } catch (PersistenceException persistenceException) {
       if (isDuplicateEntryError(persistenceException)) {
-        authResponse.setMessage("Failed login");
-        authResponse.setError(Map.of(
+        sendError(resp, HttpServletResponse.SC_FOUND, "Redirect", Map.of(
                 "message", "The session token already exists."
         ));
-        resp.setStatus(HttpServletResponse.SC_FOUND);
 
         String refreshToken = tokenService.getRefreshToken(req.getParameter("email"));
         JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
         String accessToken = tokenService.generateAccessToken(jwtPayload);
 
-        // Cookie for refresh-token
-        Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
-        refreshCookie.setHttpOnly(true);
-        refreshCookie.setSecure(false);
-        refreshCookie.setPath("/");
-        refreshCookie.setMaxAge(60 * 60 * 24 * 30);
-        resp.addCookie(refreshCookie);
-
         // Cookie for access-token
-        Cookie acessCookie = new Cookie("access_token", accessToken);
-        acessCookie.setHttpOnly(true);
-        acessCookie.setSecure(false);
-        acessCookie.setPath("/");
-        acessCookie.setMaxAge(60 * 60 * 24);
-        resp.addCookie(acessCookie);
+        addCookie(resp, "access_token", accessToken, 60 * 60);
+        // Cookie for refresh-token
+        addCookie(resp, "refresh_token", refreshToken, 60 * 60 * 24 * 7);
       } else {
-        authResponse.setMessage("Failed login");
-        authResponse.setError(Map.of(
+        sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Login failed", Map.of(
                 "message", "An error occurred on the database server."
         ));
-        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
       }
-      response = objectMapper.writeValueAsString(authResponse);
-      writer.println(response);
+    } catch (AuthenticateException authenticateException) {
+      sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Login failed", Map.of(
+              "message", authenticateException.getMessage()
+      ));
     }
   }
 
