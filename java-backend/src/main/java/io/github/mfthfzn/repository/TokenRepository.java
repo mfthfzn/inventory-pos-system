@@ -6,10 +6,10 @@ import java.util.Optional;
 
 public interface TokenRepository {
 
-  void saveToken(Token tokenSession);
+  void insert(Token tokenSession);
 
-  Optional<Token> findRefreshToken(String email);
+  Optional<Token> findByEmail(String email);
 
-  void removeToken(String email);
+  void removeByEmail(String email);
 
 }

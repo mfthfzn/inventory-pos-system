@@ -18,7 +18,7 @@ public class StoreRepositoryImpl implements StoreRepository {
   }
 
   @Override
-  public void saveStore(Store store) {
+  public void insert(Store store) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
@@ -38,7 +38,7 @@ public class StoreRepositoryImpl implements StoreRepository {
   }
 
   @Override
-  public Optional<Store> findStoreByName(String name) {
+  public Optional<Store> findByName(String name) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
@@ -59,7 +59,7 @@ public class StoreRepositoryImpl implements StoreRepository {
   }
 
   @Override
-  public void removeStore(Store store) {
+  public void remove(Store store) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {

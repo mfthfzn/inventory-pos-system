@@ -22,7 +22,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public LoginResponse authenticate(LoginRequest loginRequest) {
-    User user = userRepository.findUserByEmail(loginRequest.getEmail())
+    User user = userRepository.findByEmail(loginRequest.getEmail())
             .orElseThrow(() -> new AuthenticateException("Email or Password incorrect"));
 
     if (!BCrypt.checkpw(loginRequest.getPassword(), user.getPassword())) {

@@ -16,7 +16,25 @@ public class UserRepositoryImpl implements UserRepository {
   }
 
   @Override
-  public Optional<User> findUserByEmail(String email) {
+  public void insert(User user) {
+    EntityManager entityManager = entityManagerFactory.createEntityManager();
+    EntityTransaction transaction = entityManager.getTransaction();
+
+    try {
+      transaction.begin();
+      entityManager.persist(user);
+      transaction.commit();
+    } catch (Exception exception) {
+      if (transaction.isActive()) transaction.rollback();
+      log.error(exception.getMessage());
+      throw new PersistenceException(exception);
+    } finally {
+      entityManager.close();
+    }
+  }
+
+  @Override
+  public Optional<User> findByEmail(String email) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
@@ -24,6 +42,24 @@ public class UserRepositoryImpl implements UserRepository {
       User user = entityManager.find(User.class, email);
       transaction.commit();
       return Optional.ofNullable(user);
+    } catch (Exception exception) {
+      if (transaction.isActive()) transaction.rollback();
+      log.error(exception.getMessage());
+      throw new PersistenceException(exception);
+    } finally {
+      entityManager.close();
+    }
+  }
+
+  @Override
+  public void update(User user) {
+    EntityManager entityManager = entityManagerFactory.createEntityManager();
+    EntityTransaction transaction = entityManager.getTransaction();
+
+    try {
+      transaction.begin();
+      entityManager.merge(user);
+      transaction.commit();
     } catch (Exception exception) {
       if (transaction.isActive()) transaction.rollback();
       log.error(exception.getMessage());

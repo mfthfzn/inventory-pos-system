@@ -17,7 +17,7 @@ public class TokenRepositoryImpl implements TokenRepository {
   }
 
   @Override
-  public void saveToken(Token token) {
+  public void insert(Token token) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
@@ -40,7 +40,7 @@ public class TokenRepositoryImpl implements TokenRepository {
   }
 
   @Override
-  public Optional<Token> findRefreshToken(String email) {
+  public Optional<Token> findByEmail(String email) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
@@ -60,7 +60,7 @@ public class TokenRepositoryImpl implements TokenRepository {
   }
 
   @Override
-  public void removeToken(String email) {
+  public void removeByEmail(String email) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {

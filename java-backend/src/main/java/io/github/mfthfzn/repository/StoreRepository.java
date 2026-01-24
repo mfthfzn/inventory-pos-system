@@ -6,9 +6,9 @@ import java.util.Optional;
 
 public interface StoreRepository {
 
-  void saveStore(Store store);
+  void insert(Store store);
 
-  Optional<Store> findStoreByName(String name);
+  Optional<Store> findByName(String name);
 
-  void removeStore(Store store);
+  void remove(Store store);
 }

@@ -55,8 +55,6 @@ public class SessionController extends BaseController {
               "internal_error_code", InternalErrorCode.ACCESS_TOKEN_EXPIRED
       ));
     } catch (JWTVerificationException jwtVerificationException) {
-      String refreshToken = getCookieValue(req, "refresh_token");
-      tokenService.removeRefreshToken(tokenService.getUserFromToken(refreshToken).getEmail());
       removeCookie(resp, "access_token");
       removeCookie(resp, "refresh_token");
 

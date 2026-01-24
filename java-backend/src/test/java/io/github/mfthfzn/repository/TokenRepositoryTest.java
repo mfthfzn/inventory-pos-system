@@ -1,12 +1,10 @@
 package io.github.mfthfzn.repository;
 
 import io.github.mfthfzn.entity.Store;
+import io.github.mfthfzn.entity.Token;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.enums.UserType;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.PersistenceException;
+import jakarta.persistence.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,26 +13,31 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDateTime;
-
+import java.util.Optional;
+import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 @Slf4j
-@ExtendWith(MockitoExtension.class)
-public class UserRepositoryTest {
+@ExtendWith(
+        MockitoExtension.class
+)
+public class TokenRepositoryTest {
 
   @Mock
-  private EntityManagerFactory entityManagerFactory;
+  EntityManagerFactory entityManagerFactory;
 
   @Mock
-  private EntityManager entityManager;
+  EntityManager entityManager;
 
   @Mock
-  private EntityTransaction transaction;
+  EntityTransaction transaction;
+
+  @Mock
+  Query query;
 
   @InjectMocks
-  private UserRepositoryImpl userRepository;
+  TokenRepositoryImpl tokenRepository;
 
   @BeforeEach
   void setUp() {
@@ -44,9 +47,9 @@ public class UserRepositoryTest {
 
   @Test
   void testInsertSuccess() {
-
     User user = new User();
-    user.setEmail("eko@gmail.com");
+    String email = "eko@gmail.com";
+    user.setEmail(email);
     user.setPassword("rahasia");
     user.setName("Eko Kurniawan Khannedy");
     user.setRole(UserType.CASHIER);
@@ -54,39 +57,21 @@ public class UserRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    userRepository.insert(user);
+    Token token = new Token();
+    token.setUser(user);
+    token.setEmail(email);
+    token.setToken(UUID.randomUUID().toString());
+
+    tokenRepository.insert(token);
 
     verify(transaction, times(1)).begin();
-    verify(entityManager, times(1)).persist(user);
+    verify(entityManager, times(1)).persist(token);
     verify(transaction, times(1)).commit();
     verify(entityManager, times(1)).close();
   }
 
   @Test
   void testInsertFailed() {
-
-    User user = new User();
-    user.setEmail("eko@gmail.com");
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
-
-    when(transaction.isActive()).thenReturn(true);
-    doThrow(PersistenceException.class).when(entityManager).persist(user);
-
-    Assertions.assertThrows(PersistenceException.class, () -> userRepository.insert(user));
-    verify(transaction, times(1)).isActive();
-    verify(transaction, times(1)).rollback();
-    verify(entityManager, times(1)).close();
-
-  }
-
-  @Test
-  void testFindByEmailSuccess() {
-
     User user = new User();
     String email = "eko@gmail.com";
     user.setEmail(email);
@@ -97,18 +82,49 @@ public class UserRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    when(entityManager.find(User.class, email)).thenReturn(user);
-    userRepository.findByEmail(email);
+    Token token = new Token();
+    token.setUser(user);
+    token.setEmail(email);
+    token.setToken(UUID.randomUUID().toString());
+
+    when(transaction.isActive()).thenReturn(true);
+    doThrow(PersistenceException.class).when(entityManager).persist(token);
+
+    Assertions.assertThrows(PersistenceException.class, () -> tokenRepository.insert(token));
+    verify(transaction, times(1)).isActive();
+    verify(transaction, times(1)).rollback();
+    verify(entityManager, times(1)).close();
+  }
+
+  @Test
+  void testFindByEmailSuccess() {
+    User user = new User();
+    String email = "eko@gmail.com";
+    user.setEmail(email);
+    user.setPassword("rahasia");
+    user.setName("Eko Kurniawan Khannedy");
+    user.setRole(UserType.CASHIER);
+    user.setCreatedAt(LocalDateTime.now());
+    user.setUpdatedAt(LocalDateTime.now());
+    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
+
+    Token token = new Token();
+    token.setUser(user);
+    token.setEmail(email);
+    token.setToken(UUID.randomUUID().toString());
+
+    when(entityManager.find(Token.class, email)).thenReturn(token);
+    Optional<Token> byEmail = tokenRepository.findByEmail(email);
+    Assertions.assertEquals(email, byEmail.get().getEmail());
 
     verify(transaction, times(1)).begin();
-    verify(entityManager, times(1)).find(User.class, email);
+    verify(entityManager, times(1)).find(Token.class, email);
     verify(transaction, times(1)).commit();
     verify(entityManager, times(1)).close();
   }
 
   @Test
   void testFindByEmailFailed() {
-
     User user = new User();
     String email = "eko@gmail.com";
     user.setEmail(email);
@@ -119,21 +135,22 @@ public class UserRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
+    Token token = new Token();
+    token.setUser(user);
+    token.setEmail(email);
+    token.setToken(UUID.randomUUID().toString());
+
     when(transaction.isActive()).thenReturn(true);
-    doThrow(PersistenceException.class).when(entityManager).find(User.class, email);
+    doThrow(PersistenceException.class).when(entityManager).find(Token.class, email);
 
-    Assertions.assertThrows(PersistenceException.class, () -> {
-      userRepository.findByEmail(email);
-    });
-
+    Assertions.assertThrows(PersistenceException.class, () -> tokenRepository.findByEmail(email));
     verify(transaction, times(1)).isActive();
     verify(transaction, times(1)).rollback();
     verify(entityManager, times(1)).close();
   }
 
   @Test
-  void testUpdateSuccess() {
-
+  void testRemoveByEmailSuccess() {
     User user = new User();
     String email = "eko@gmail.com";
     user.setEmail(email);
@@ -144,17 +161,26 @@ public class UserRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    userRepository.update(user);
+    Token token = new Token();
+    token.setUser(user);
+    token.setEmail(email);
+    token.setToken(UUID.randomUUID().toString());
+
+    when(entityManager.createQuery("DELETE FROM Token t WHERE t.email = :email")).thenReturn(query);
+
+    when(query.setParameter("email", email)).thenReturn(query);
+
+    when(query.executeUpdate()).thenReturn(1);
+    tokenRepository.removeByEmail(email);
 
     verify(transaction, times(1)).begin();
-    verify(entityManager, times(1)).merge(user);
+    verify(entityManager, times(1)).createQuery(contains("DELETE FROM Token t WHERE t.email = :email"));
     verify(transaction, times(1)).commit();
     verify(entityManager, times(1)).close();
   }
 
   @Test
-  void testUpdateFailed() {
-
+  void testRemoveByEmailFailed() {
     User user = new User();
     String email = "eko@gmail.com";
     user.setEmail(email);
@@ -165,13 +191,17 @@ public class UserRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
+    Token token = new Token();
+    token.setUser(user);
+    token.setEmail(email);
+    token.setToken(UUID.randomUUID().toString());
+
+    doThrow(PersistenceException.class).when(entityManager).createQuery(contains("DELETE FROM Token t WHERE t.email = :email"));
     when(transaction.isActive()).thenReturn(true);
-    doThrow(PersistenceException.class).when(entityManager).merge(user);
 
     Assertions.assertThrows(PersistenceException.class, () -> {
-      userRepository.update(user);
+      tokenRepository.removeByEmail(email);
     });
-
     verify(transaction, times(1)).isActive();
     verify(transaction, times(1)).rollback();
     verify(entityManager, times(1)).close();

@@ -75,7 +75,7 @@ public class TokenServiceImpl implements TokenService {
     Token token = new Token();
     token.setUser(loginResponse.getUser());
     token.setToken(loginResponse.getRefreshToken());
-    tokenRepository.saveToken(token);
+    tokenRepository.insert(token);
   }
 
   @Override
@@ -122,7 +122,7 @@ public class TokenServiceImpl implements TokenService {
   @Override
   public String getRefreshToken(String email) {
     try {
-      Optional<Token> refreshToken = tokenRepository.findRefreshToken(email);
+      Optional<Token> refreshToken = tokenRepository.findByEmail(email);
       return refreshToken.map(Token::getToken).orElse(null);
     } catch (PersistenceException persistenceException) {
       throw new PersistenceException(persistenceException);
@@ -132,7 +132,7 @@ public class TokenServiceImpl implements TokenService {
   @Override
   public void removeRefreshToken(String email) {
     try {
-      tokenRepository.removeToken(email);
+      tokenRepository.removeByEmail(email);
     } catch (PersistenceException persistenceException) {
       throw new PersistenceException(persistenceException);
     }
