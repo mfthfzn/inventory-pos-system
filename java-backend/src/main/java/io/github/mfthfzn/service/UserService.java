@@ -4,6 +4,8 @@ import io.github.mfthfzn.entity.User;
 
 public interface UserService {
 
-  public User getUser(String email);
+  User getUser(String email);
+
+  void changePassword(String email, String newPassword);
 
 }

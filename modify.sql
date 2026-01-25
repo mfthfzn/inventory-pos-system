@@ -1,0 +1,35 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE transaction_items;
+TRUNCATE TABLE stock_movements;
+TRUNCATE TABLE transactions;
+TRUNCATE TABLE stocks;
+TRUNCATE TABLE product_varians;
+TRUNCATE TABLE products;
+TRUNCATE TABLE refresh_tokens;
+TRUNCATE TABLE users;
+TRUNCATE TABLE stores;
+TRUNCATE TABLE sizes;
+TRUNCATE TABLE colors;
+TRUNCATE TABLE categories;
+TRUNCATE TABLE product_targets;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS transaction_items;
+DROP TABLE IF EXISTS stock_movements;
+DROP TABLE IF EXISTS transactions;
+DROP TABLE IF EXISTS stocks;
+DROP TABLE IF EXISTS product_varians;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS refresh_tokens;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS stores;
+DROP TABLE IF EXISTS sizes;
+DROP TABLE IF EXISTS colors;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS product_targets;
+
+SET FOREIGN_KEY_CHECKS = 1;

@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.github.mfthfzn.dto.JwtPayload;
 import io.github.mfthfzn.dto.LoginResponse;
 import io.github.mfthfzn.entity.Token;
@@ -21,9 +22,9 @@ public class TokenServiceImpl implements TokenService {
 
   private final TokenRepositoryImpl tokenRepository;
 
-  private final String SECRET_KEY = "apple river mountain trust candle yellow piano fossil dream coffee stone ladder";
+  private final Dotenv dotenv = Dotenv.load();
 
-  Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
+  Algorithm algorithm = Algorithm.HMAC256(dotenv.get("JWT_SECRET"));
 
   public TokenServiceImpl(TokenRepositoryImpl tokenRepository) {
     this.tokenRepository = tokenRepository;
@@ -39,7 +40,7 @@ public class TokenServiceImpl implements TokenService {
             .withClaim("store_id", user.getStore().getId())
             .withClaim("store_name", user.getStore().getName())
             .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofMinutes(1)))
+            .withExpiresAt(Instant.now().plus(Duration.ofHours(1)))
             .sign(algorithm);
   }
 
@@ -52,7 +53,7 @@ public class TokenServiceImpl implements TokenService {
             .withClaim("store_id", jwtPayload.getStoreId())
             .withClaim("store_name", jwtPayload.getStoreName())
             .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofMinutes(5)))
+            .withExpiresAt(Instant.now().plus(Duration.ofDays(1)))
             .sign(algorithm);
   }
 
