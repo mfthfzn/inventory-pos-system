@@ -1,4 +1,7 @@
 package io.github.mfthfzn.service;
 
-public class EmailService {
+public interface EmailService {
+
+  void sendResetPasswordLink(String name, String toAddress, String resetLink);
+
 }

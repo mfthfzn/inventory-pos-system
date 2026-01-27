@@ -56,7 +56,7 @@ public class LoginController extends BaseController {
 
       // generate token
       loginResponse.setAccessToken(tokenService.generateAccessToken(loginResponse));
-      if (loginResponse.getUser().getToken() != null) {
+      if (loginResponse.getUser().getRefreshToken() != null) {
         tokenService.removeRefreshToken(loginResponse.getUser().getEmail());
       }
 

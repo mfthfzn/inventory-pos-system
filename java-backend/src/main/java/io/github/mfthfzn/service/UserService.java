@@ -6,6 +6,4 @@ public interface UserService {
 
   User getUser(String email);
 
-  void changePassword(String email, String newPassword);
-
 }

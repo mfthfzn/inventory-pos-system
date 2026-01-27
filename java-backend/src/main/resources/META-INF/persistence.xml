@@ -19,7 +19,7 @@
         <class>io.github.mfthfzn.entity.Stock</class>
         <class>io.github.mfthfzn.entity.StockMovement</class>
         <class>io.github.mfthfzn.entity.Store</class>
-        <class>io.github.mfthfzn.entity.Token</class>
+        <class>io.github.mfthfzn.entity.RefreshToken</class>
         <class>io.github.mfthfzn.entity.Transaction</class>
         <class>io.github.mfthfzn.entity.TransactionItem</class>
         <class>io.github.mfthfzn.entity.User</class>

@@ -39,7 +39,7 @@ public class User {
   private LocalDateTime updatedAt;
 
   @OneToOne(mappedBy = "user")
-  private Token token;
+  private RefreshToken refreshToken;
 
   @ManyToOne()
   @JoinColumn(

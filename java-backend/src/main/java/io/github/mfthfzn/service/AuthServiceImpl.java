@@ -31,4 +31,10 @@ public class AuthServiceImpl implements AuthService {
     return new LoginResponse(null, null, user);
   }
 
+  @Override
+  public void changePassword(String email, String newPassword) {
+    User user = userRepository.findByEmail(loginRequest.getEmail())
+            .orElseThrow(() -> new AuthenticateException("Email or Password incorrect"));
+  }
+
 }

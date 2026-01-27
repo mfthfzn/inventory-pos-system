@@ -8,7 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.mfthfzn.dto.JwtPayload;
 import io.github.mfthfzn.dto.LoginResponse;
-import io.github.mfthfzn.entity.Token;
+import io.github.mfthfzn.entity.RefreshToken;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.exception.AccessTokenExpiredException;
 import io.github.mfthfzn.exception.RefreshTokenExpiredException;
@@ -73,10 +73,10 @@ public class TokenServiceImpl implements TokenService {
 
   @Override
   public void saveRefreshToken(LoginResponse loginResponse) {
-    Token token = new Token();
-    token.setUser(loginResponse.getUser());
-    token.setToken(loginResponse.getRefreshToken());
-    tokenRepository.insert(token);
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(loginResponse.getUser());
+    refreshToken.setToken(loginResponse.getRefreshToken());
+    tokenRepository.insert(refreshToken);
   }
 
   @Override
@@ -123,8 +123,8 @@ public class TokenServiceImpl implements TokenService {
   @Override
   public String getRefreshToken(String email) {
     try {
-      Optional<Token> refreshToken = tokenRepository.findByEmail(email);
-      return refreshToken.map(Token::getToken).orElse(null);
+      Optional<RefreshToken> refreshToken = tokenRepository.findByEmail(email);
+      return refreshToken.map(RefreshToken::getToken).orElse(null);
     } catch (PersistenceException persistenceException) {
       throw new PersistenceException(persistenceException);
     }

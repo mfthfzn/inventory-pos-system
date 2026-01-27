@@ -7,4 +7,6 @@ public interface AuthService {
 
   LoginResponse authenticate(LoginRequest loginRequest);
 
+  void changePassword(String email, String newPassword);
+
 }

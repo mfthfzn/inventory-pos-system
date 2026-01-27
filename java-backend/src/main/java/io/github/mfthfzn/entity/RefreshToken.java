@@ -9,7 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Token {
+public class RefreshToken {
 
   @Id
   @Column(nullable = false)

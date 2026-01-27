@@ -1,7 +1,7 @@
 package io.github.mfthfzn.repository;
 
 import io.github.mfthfzn.entity.Store;
-import io.github.mfthfzn.entity.Token;
+import io.github.mfthfzn.entity.RefreshToken;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.enums.UserType;
 import jakarta.persistence.*;
@@ -57,15 +57,15 @@ public class TokenRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    Token token = new Token();
-    token.setUser(user);
-    token.setEmail(email);
-    token.setToken(UUID.randomUUID().toString());
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(user);
+    refreshToken.setEmail(email);
+    refreshToken.setToken(UUID.randomUUID().toString());
 
-    tokenRepository.insert(token);
+    tokenRepository.insert(refreshToken);
 
     verify(transaction, times(1)).begin();
-    verify(entityManager, times(1)).persist(token);
+    verify(entityManager, times(1)).persist(refreshToken);
     verify(transaction, times(1)).commit();
     verify(entityManager, times(1)).close();
   }
@@ -82,15 +82,15 @@ public class TokenRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    Token token = new Token();
-    token.setUser(user);
-    token.setEmail(email);
-    token.setToken(UUID.randomUUID().toString());
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(user);
+    refreshToken.setEmail(email);
+    refreshToken.setToken(UUID.randomUUID().toString());
 
     when(transaction.isActive()).thenReturn(true);
-    doThrow(PersistenceException.class).when(entityManager).persist(token);
+    doThrow(PersistenceException.class).when(entityManager).persist(refreshToken);
 
-    Assertions.assertThrows(PersistenceException.class, () -> tokenRepository.insert(token));
+    Assertions.assertThrows(PersistenceException.class, () -> tokenRepository.insert(refreshToken));
     verify(transaction, times(1)).isActive();
     verify(transaction, times(1)).rollback();
     verify(entityManager, times(1)).close();
@@ -108,17 +108,17 @@ public class TokenRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    Token token = new Token();
-    token.setUser(user);
-    token.setEmail(email);
-    token.setToken(UUID.randomUUID().toString());
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(user);
+    refreshToken.setEmail(email);
+    refreshToken.setToken(UUID.randomUUID().toString());
 
-    when(entityManager.find(Token.class, email)).thenReturn(token);
-    Optional<Token> byEmail = tokenRepository.findByEmail(email);
+    when(entityManager.find(RefreshToken.class, email)).thenReturn(refreshToken);
+    Optional<RefreshToken> byEmail = tokenRepository.findByEmail(email);
     Assertions.assertEquals(email, byEmail.get().getEmail());
 
     verify(transaction, times(1)).begin();
-    verify(entityManager, times(1)).find(Token.class, email);
+    verify(entityManager, times(1)).find(RefreshToken.class, email);
     verify(transaction, times(1)).commit();
     verify(entityManager, times(1)).close();
   }
@@ -135,13 +135,13 @@ public class TokenRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    Token token = new Token();
-    token.setUser(user);
-    token.setEmail(email);
-    token.setToken(UUID.randomUUID().toString());
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(user);
+    refreshToken.setEmail(email);
+    refreshToken.setToken(UUID.randomUUID().toString());
 
     when(transaction.isActive()).thenReturn(true);
-    doThrow(PersistenceException.class).when(entityManager).find(Token.class, email);
+    doThrow(PersistenceException.class).when(entityManager).find(RefreshToken.class, email);
 
     Assertions.assertThrows(PersistenceException.class, () -> tokenRepository.findByEmail(email));
     verify(transaction, times(1)).isActive();
@@ -161,10 +161,10 @@ public class TokenRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    Token token = new Token();
-    token.setUser(user);
-    token.setEmail(email);
-    token.setToken(UUID.randomUUID().toString());
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(user);
+    refreshToken.setEmail(email);
+    refreshToken.setToken(UUID.randomUUID().toString());
 
     when(entityManager.createQuery("DELETE FROM Token t WHERE t.email = :email")).thenReturn(query);
 
@@ -191,10 +191,10 @@ public class TokenRepositoryTest {
     user.setUpdatedAt(LocalDateTime.now());
     user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
-    Token token = new Token();
-    token.setUser(user);
-    token.setEmail(email);
-    token.setToken(UUID.randomUUID().toString());
+    RefreshToken refreshToken = new RefreshToken();
+    refreshToken.setUser(user);
+    refreshToken.setEmail(email);
+    refreshToken.setToken(UUID.randomUUID().toString());
 
     doThrow(PersistenceException.class).when(entityManager).createQuery(contains("DELETE FROM Token t WHERE t.email = :email"));
     when(transaction.isActive()).thenReturn(true);

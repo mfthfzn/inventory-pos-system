@@ -1,6 +1,6 @@
 package io.github.mfthfzn.repository;
 
-import io.github.mfthfzn.entity.Token;
+import io.github.mfthfzn.entity.RefreshToken;
 import io.github.mfthfzn.entity.User;
 import jakarta.persistence.*;
 import lombok.extern.slf4j.Slf4j;
@@ -17,16 +17,16 @@ public class TokenRepositoryImpl implements TokenRepository {
   }
 
   @Override
-  public void insert(Token token) {
+  public void insert(RefreshToken refreshToken) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
       transaction.begin();
 
-      User userReference = entityManager.getReference(User.class, token.getUser().getEmail());
-      token.setUser(userReference);
+      User userReference = entityManager.getReference(User.class, refreshToken.getUser().getEmail());
+      refreshToken.setUser(userReference);
 
-      entityManager.persist(token);
+      entityManager.persist(refreshToken);
 
       transaction.commit();
 
@@ -40,16 +40,16 @@ public class TokenRepositoryImpl implements TokenRepository {
   }
 
   @Override
-  public Optional<Token> findByEmail(String email) {
+  public Optional<RefreshToken> findByEmail(String email) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
 
       transaction.begin();
-      Token token = entityManager.find(Token.class, email);
+      RefreshToken refreshToken = entityManager.find(RefreshToken.class, email);
       transaction.commit();
 
-      return Optional.ofNullable(token);
+      return Optional.ofNullable(refreshToken);
     } catch (Exception exception) {
       if (transaction.isActive()) transaction.rollback();
       log.error(exception.getMessage());

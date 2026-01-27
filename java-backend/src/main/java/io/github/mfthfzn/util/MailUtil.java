@@ -57,7 +57,7 @@ public class MailUtil {
                             </table>
             
                             <div class="footer">
-                                <p>&copy; 2024 Nama Aplikasi Anda. All rights reserved.</p>
+                                <p>&copy; 2025 Stocka. All rights reserved.</p>
                             </div>
             
                         </td>
