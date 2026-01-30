@@ -4,7 +4,7 @@ import io.github.mfthfzn.entity.RefreshToken;
 
 import java.util.Optional;
 
-public interface TokenRepository {
+public interface RefreshTokenRepository {
 
   void insert(RefreshToken refreshTokenSession);
 

@@ -1,9 +1,9 @@
 package io.github.mfthfzn.controller;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import io.github.mfthfzn.dto.JwtPayload;
-import io.github.mfthfzn.exception.TokenRequiredException;
-import io.github.mfthfzn.repository.TokenRepositoryImpl;
+import io.github.mfthfzn.dto.UserResponse;
+import io.github.mfthfzn.repository.RefreshTokenRepositoryImpl;
+import io.github.mfthfzn.service.TokenService;
 import io.github.mfthfzn.service.TokenServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
 import jakarta.persistence.PersistenceException;
@@ -20,9 +20,9 @@ import java.util.Map;
 @WebServlet(urlPatterns = "/api/auth/logout")
 public class LogoutController extends BaseController {
 
-  private final TokenServiceImpl tokenService =
+  private final TokenService tokenService =
           new TokenServiceImpl(
-                  new TokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
+                  new RefreshTokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
           );
 
   @Override
@@ -30,8 +30,8 @@ public class LogoutController extends BaseController {
     String refreshToken = getCookieValue(req, "refresh_token");
     if (refreshToken != null && !refreshToken.isBlank()) {
       try {
-        JwtPayload jwtPayload = tokenService.getUserFromToken(refreshToken);
-        tokenService.removeRefreshToken(jwtPayload.getEmail());
+        UserResponse userFromToken = tokenService.getUserFromToken(refreshToken);
+        tokenService.removeRefreshToken(userFromToken.getEmail());
       } catch (JWTVerificationException | PersistenceException exception) {
         log.error(exception.getMessage());
       }

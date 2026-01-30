@@ -1,13 +1,13 @@
 package io.github.mfthfzn.service;
 
-import io.github.mfthfzn.dto.JwtPayload;
 import io.github.mfthfzn.dto.LoginResponse;
+import io.github.mfthfzn.dto.UserResponse;
 
 public interface TokenService {
 
   String generateAccessToken(LoginResponse loginResponse);
 
-  String generateAccessToken(JwtPayload jwtPayload);
+  String generateAccessToken(UserResponse userResponse);
 
   String generateRefreshToken(LoginResponse loginResponse);
 
@@ -17,7 +17,7 @@ public interface TokenService {
 
   void verifyAccessToken(String token);
 
-  JwtPayload getUserFromToken(String token);
+  UserResponse getUserFromToken(String token);
 
   String getRefreshToken(String token);
 

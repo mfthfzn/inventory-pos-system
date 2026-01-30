@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(
         MockitoExtension.class
 )
-public class TokenRepositoryTest {
+public class RefreshTokenRepositoryTest {
 
   @Mock
   EntityManagerFactory entityManagerFactory;
@@ -37,7 +37,7 @@ public class TokenRepositoryTest {
   Query query;
 
   @InjectMocks
-  TokenRepositoryImpl tokenRepository;
+  RefreshTokenRepositoryImpl tokenRepository;
 
   @BeforeEach
   void setUp() {
@@ -166,7 +166,7 @@ public class TokenRepositoryTest {
     refreshToken.setEmail(email);
     refreshToken.setToken(UUID.randomUUID().toString());
 
-    when(entityManager.createQuery("DELETE FROM Token t WHERE t.email = :email")).thenReturn(query);
+    when(entityManager.createQuery("DELETE FROM RefreshToken t WHERE t.email = :email")).thenReturn(query);
 
     when(query.setParameter("email", email)).thenReturn(query);
 
@@ -174,7 +174,7 @@ public class TokenRepositoryTest {
     tokenRepository.removeByEmail(email);
 
     verify(transaction, times(1)).begin();
-    verify(entityManager, times(1)).createQuery(contains("DELETE FROM Token t WHERE t.email = :email"));
+    verify(entityManager, times(1)).createQuery(contains("DELETE FROM RefreshToken t WHERE t.email = :email"));
     verify(transaction, times(1)).commit();
     verify(entityManager, times(1)).close();
   }
@@ -196,7 +196,7 @@ public class TokenRepositoryTest {
     refreshToken.setEmail(email);
     refreshToken.setToken(UUID.randomUUID().toString());
 
-    doThrow(PersistenceException.class).when(entityManager).createQuery(contains("DELETE FROM Token t WHERE t.email = :email"));
+    doThrow(PersistenceException.class).when(entityManager).createQuery(contains("DELETE FROM RefreshToken t WHERE t.email = :email"));
     when(transaction.isActive()).thenReturn(true);
 
     Assertions.assertThrows(PersistenceException.class, () -> {

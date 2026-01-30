@@ -1,13 +1,11 @@
 package io.github.mfthfzn.controller;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
-import io.github.mfthfzn.dto.JwtPayload;
-import io.github.mfthfzn.dto.UserResponse;
 import io.github.mfthfzn.enums.InternalErrorCode;
 import io.github.mfthfzn.exception.AccessTokenExpiredException;
 import io.github.mfthfzn.exception.TokenRequiredException;
-import io.github.mfthfzn.repository.TokenRepositoryImpl;
+import io.github.mfthfzn.repository.RefreshTokenRepositoryImpl;
+import io.github.mfthfzn.service.TokenService;
 import io.github.mfthfzn.service.TokenServiceImpl;
 import io.github.mfthfzn.util.JpaUtil;
 import jakarta.servlet.ServletException;
@@ -20,9 +18,9 @@ import java.util.Map;
 @WebServlet(urlPatterns = "/api/auth/session")
 public class SessionController extends BaseController {
 
-  private final TokenServiceImpl tokenService =
+  private final TokenService tokenService =
           new TokenServiceImpl(
-                  new TokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
+                  new RefreshTokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
           );
 
   @Override
@@ -35,14 +33,7 @@ public class SessionController extends BaseController {
       }
 
       tokenService.verifyAccessToken(accessToken);
-      JwtPayload jwtPayload = tokenService.getUserFromToken(accessToken);
-      UserResponse userResponse = new UserResponse(
-              jwtPayload.getEmail(),
-              jwtPayload.getName(),
-              jwtPayload.getRole(),
-              jwtPayload.getStoreName()
-      );
-      sendSuccess(resp, HttpServletResponse.SC_OK, "Success get data", userResponse);
+      sendSuccess(resp, HttpServletResponse.SC_OK, "Success get data", tokenService.getUserFromToken(accessToken));
 
     } catch (TokenRequiredException tokenRequiredException) {
       sendError(resp, HttpServletResponse.SC_UNAUTHORIZED, "Failed to get data", Map.of(

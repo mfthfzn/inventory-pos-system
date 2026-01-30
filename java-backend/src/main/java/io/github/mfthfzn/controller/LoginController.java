@@ -2,10 +2,10 @@ package io.github.mfthfzn.controller;
 
 import io.github.mfthfzn.dto.*;
 import io.github.mfthfzn.exception.AuthenticateException;
-import io.github.mfthfzn.repository.TokenRepositoryImpl;
+import io.github.mfthfzn.repository.RefreshTokenRepositoryImpl;
+import io.github.mfthfzn.repository.UserRepository;
 import io.github.mfthfzn.repository.UserRepositoryImpl;
-import io.github.mfthfzn.service.AuthServiceImpl;
-import io.github.mfthfzn.service.TokenServiceImpl;
+import io.github.mfthfzn.service.*;
 import io.github.mfthfzn.util.JpaUtil;
 import io.github.mfthfzn.util.ValidatorUtil;
 import jakarta.persistence.PersistenceException;
@@ -21,17 +21,19 @@ import java.util.Set;
 @WebServlet(urlPatterns = "/api/auth/login")
 public class LoginController extends BaseController {
 
-  private final UserRepositoryImpl userRepository =
+  private final EmailService emailService = new EmailServiceImpl();
+
+  private final UserRepository userRepository =
           new UserRepositoryImpl(JpaUtil.getEntityManagerFactory());
 
-  private final TokenServiceImpl tokenService =
+  private final TokenService tokenService =
           new TokenServiceImpl(
-                  new TokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
+                  new RefreshTokenRepositoryImpl(JpaUtil.getEntityManagerFactory())
           );
 
-  private final AuthServiceImpl authService =
+  private final AuthService authService =
           new AuthServiceImpl(
-                  userRepository, tokenService
+                  userRepository
           );
 
   @Override

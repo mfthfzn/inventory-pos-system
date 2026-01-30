@@ -6,13 +6,13 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.github.cdimascio.dotenv.Dotenv;
-import io.github.mfthfzn.dto.JwtPayload;
 import io.github.mfthfzn.dto.LoginResponse;
+import io.github.mfthfzn.dto.UserResponse;
 import io.github.mfthfzn.entity.RefreshToken;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.exception.AccessTokenExpiredException;
 import io.github.mfthfzn.exception.RefreshTokenExpiredException;
-import io.github.mfthfzn.repository.TokenRepositoryImpl;
+import io.github.mfthfzn.repository.RefreshTokenRepository;
 import jakarta.persistence.PersistenceException;
 import java.time.Duration;
 import java.time.Instant;
@@ -20,55 +20,57 @@ import java.util.Optional;
 
 public class TokenServiceImpl implements TokenService {
 
-  private final TokenRepositoryImpl tokenRepository;
+  private final RefreshTokenRepository tokenRepository;
 
   private final Dotenv dotenv = Dotenv.load();
 
   Algorithm algorithm = Algorithm.HMAC256(dotenv.get("JWT_SECRET"));
 
-  public TokenServiceImpl(TokenRepositoryImpl tokenRepository) {
+  private static final String CLAIM_ROLE = "role";
+  private static final String CLAIM_NAME = "name";
+  private static final String CLAIM_STORE_ID = "store_id";
+  private static final String CLAIM_STORE_NAME = "store_name";
+
+  private static final long ACCESS_TOKEN_EXPIRY_MINUTES = 60;
+  private static final long REFRESH_TOKEN_EXPIRY_DAYS = 7;
+
+  public TokenServiceImpl(RefreshTokenRepository tokenRepository) {
     this.tokenRepository = tokenRepository;
+  }
+
+  public String createJwt(User user, Duration duration) {
+    return JWT.create()
+            .withSubject(user.getEmail())
+            .withClaim(CLAIM_ROLE, user.getRole().toString())
+            .withClaim(CLAIM_NAME, user.getName())
+            .withClaim(CLAIM_STORE_NAME, user.getStore().getName())
+            .withIssuedAt(Instant.now())
+            .withExpiresAt(Instant.now().plus(duration))
+            .sign(algorithm);
   }
 
   @Override
   public String generateAccessToken(LoginResponse loginResponse) {
     User user = loginResponse.getUser();
-    return JWT.create()
-            .withSubject(user.getEmail())
-            .withClaim("role", user.getRole().toString())
-            .withClaim("name", user.getName())
-            .withClaim("store_id", user.getStore().getId())
-            .withClaim("store_name", user.getStore().getName())
-            .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofHours(1)))
-            .sign(algorithm);
+    return createJwt(user, Duration.ofMinutes(ACCESS_TOKEN_EXPIRY_MINUTES));
   }
 
   @Override
-  public String generateAccessToken(JwtPayload jwtPayload) {
+  public String generateAccessToken(UserResponse userResponse) {
     return JWT.create()
-            .withSubject(jwtPayload.getEmail())
-            .withClaim("role", jwtPayload.getRole())
-            .withClaim("name", jwtPayload.getName())
-            .withClaim("store_id", jwtPayload.getStoreId())
-            .withClaim("store_name", jwtPayload.getStoreName())
+            .withSubject(userResponse.getEmail())
+            .withClaim(CLAIM_ROLE, userResponse.getRole())
+            .withClaim(CLAIM_NAME, userResponse.getName())
+            .withClaim(CLAIM_STORE_NAME, userResponse.getStoreName())
             .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofDays(1)))
+            .withExpiresAt(Instant.now().plus(Duration.ofMinutes(ACCESS_TOKEN_EXPIRY_MINUTES)))
             .sign(algorithm);
   }
 
   @Override
   public String generateRefreshToken(LoginResponse loginResponse) {
     User user = loginResponse.getUser();
-    return JWT.create()
-            .withSubject(user.getEmail())
-            .withClaim("role", user.getRole().toString())
-            .withClaim("name", user.getName())
-            .withClaim("store_id", user.getStore().getId())
-            .withClaim("store_name", user.getStore().getName())
-            .withIssuedAt(Instant.now())
-            .withExpiresAt(Instant.now().plus(Duration.ofMinutes(5)))
-            .sign(algorithm);
+    return createJwt(user, Duration.ofMinutes(REFRESH_TOKEN_EXPIRY_DAYS));
   }
 
   @Override
@@ -106,18 +108,17 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @Override
-  public JwtPayload getUserFromToken(String token) {
+  public UserResponse getUserFromToken(String token) {
 
     DecodedJWT decodedJWT = JWT.decode(token);
 
-    JwtPayload jwtPayload = new JwtPayload();
+    UserResponse userResponse = new UserResponse();
 
-    jwtPayload.setStoreId(decodedJWT.getClaim("store_id").asInt());
-    jwtPayload.setStoreName(decodedJWT.getClaim("store_name").asString());
-    jwtPayload.setEmail(decodedJWT.getSubject());
-    jwtPayload.setRole(decodedJWT.getClaim("role").asString());
-    jwtPayload.setName(decodedJWT.getClaim("name").asString());
-    return jwtPayload;
+    userResponse.setStoreName(decodedJWT.getClaim("store_name").asString());
+    userResponse.setEmail(decodedJWT.getSubject());
+    userResponse.setRole(decodedJWT.getClaim("role").asString());
+    userResponse.setName(decodedJWT.getClaim("name").asString());
+    return userResponse;
   }
 
   @Override

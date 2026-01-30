@@ -1,32 +1,36 @@
 package io.github.mfthfzn.repository;
 
 import io.github.mfthfzn.entity.RefreshToken;
+import io.github.mfthfzn.entity.ResetPasswordToken;
 import io.github.mfthfzn.entity.User;
-import jakarta.persistence.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityTransaction;
+import jakarta.persistence.PersistenceException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 
 @Slf4j
-public class TokenRepositoryImpl implements TokenRepository {
+public class ResetPasswordTokenRepositoryImpl implements ResetPasswordTokenRepository {
 
   private final EntityManagerFactory entityManagerFactory;
 
-  public TokenRepositoryImpl(EntityManagerFactory entityManagerFactory) {
+  public ResetPasswordTokenRepositoryImpl(EntityManagerFactory entityManagerFactory) {
     this.entityManagerFactory = entityManagerFactory;
   }
 
   @Override
-  public void insert(RefreshToken refreshToken) {
+  public void insert(ResetPasswordToken resetPasswordToken) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
       transaction.begin();
 
-      User userReference = entityManager.getReference(User.class, refreshToken.getUser().getEmail());
-      refreshToken.setUser(userReference);
+      User userReference = entityManager.getReference(User.class, resetPasswordToken.getUser().getEmail());
+      resetPasswordToken.setUser(userReference);
 
-      entityManager.persist(refreshToken);
+      entityManager.persist(resetPasswordToken);
 
       transaction.commit();
 
@@ -40,16 +44,16 @@ public class TokenRepositoryImpl implements TokenRepository {
   }
 
   @Override
-  public Optional<RefreshToken> findByEmail(String email) {
+  public Optional<ResetPasswordToken> findByEmail(String email) {
     EntityManager entityManager = entityManagerFactory.createEntityManager();
     EntityTransaction transaction = entityManager.getTransaction();
     try {
 
       transaction.begin();
-      RefreshToken refreshToken = entityManager.find(RefreshToken.class, email);
+      ResetPasswordToken resetPasswordToken = entityManager.find(ResetPasswordToken.class, email);
       transaction.commit();
 
-      return Optional.ofNullable(refreshToken);
+      return Optional.ofNullable(resetPasswordToken);
     } catch (Exception exception) {
       if (transaction.isActive()) transaction.rollback();
       log.error(exception.getMessage());
@@ -66,7 +70,7 @@ public class TokenRepositoryImpl implements TokenRepository {
     try {
 
       transaction.begin();
-      entityManager.createQuery("DELETE FROM Token t WHERE t.email = :email")
+      entityManager.createQuery("DELETE FROM ResetPasswordToken t WHERE t.email = :email")
               .setParameter("email", email)
               .executeUpdate();
       transaction.commit();
@@ -79,4 +83,5 @@ public class TokenRepositoryImpl implements TokenRepository {
       entityManager.close();
     }
   }
+
 }
