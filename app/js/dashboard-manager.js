@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async function (event) {
     heroWelcome.textContent = "Halo, " + responseData.data.name;
 
     const role = responseData.data.role;
-    if(role != "INVENTORY_STAFF") {
+    if(role != "MANAGER") {
       window.location.href = "/app/users/login/";
     }
   } catch (error) {

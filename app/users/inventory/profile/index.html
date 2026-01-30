@@ -8,7 +8,7 @@
     </title>
     <link rel="stylesheet" href="../../../css/root.css" />
     <link rel="stylesheet" href="../../../css/dashboard.css" />
-    <link rel="stylesheet" href="../../../css/dashboard-cashier.css" />
+    <link rel="stylesheet" href="../../../css/profile.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -32,7 +32,7 @@
         <ul class="menu">
           <p class="menu-letter">MENU</p>
           <li>
-            <a href="../dashboard/" class="menu-item active">
+            <a href="../dashboard/" class="menu-item">
               <i class="fa-solid fa-home"></i>
               <span class="menu-text">Dashboard</span>
             </a>
@@ -44,7 +44,7 @@
             </a>
           </li>
           <li>
-            <a href="../profile/" class="menu-item">
+            <a href="../profile/" class="menu-item active">
               <i class="fa-solid fa-user"></i>
               <span class="menu-text">Profile</span>
             </a>
@@ -80,25 +80,87 @@
         </nav>
       </header>
 
+      <!-- Title Menu -->
+      <h1 class="menu-title">Profile</h1>
+
       <!-- Main Content -->
       <div class="main-content">
-        <div class="hero-section">
-          <div class="hero-message">
-            <h1 class="hero-welcome"></h1>
-            <h2 class="hero-desc">
-              Selamat datang di Dashboard Kasir. Silakan kelola transaksi
-              penjualan dengan teliti dan profesional.
-            </h2>
-          </div>
+        <div class="main-content-data">
 
-          <div class="hero-image">
-            <img src="../../../assets/hero-image.jpg" alt="gambar karyawan" />
+          <!-- Info -->
+          <div class="info">
+            <div class="info-detail">
+              <div class="name">
+                <label for="name">Nama</label>
+                <input
+                  type="text"
+                  class="input-text"
+                  id="name"
+                  disabled
+                />
+              </div>
+
+              <div class="email">
+                <label for="email">Email</label>
+                <input
+                  type="tel"
+                  class="input-text"
+                  id="email"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div class="info-detail">
+              <div class="role">
+                <label for="role">Role</label>
+                <input
+                  type="tel"
+                  class="input-text"
+                  id="role"
+                  disabled
+                />
+              </div>
+
+              <div class="role"></div>
+            </div>
+          </div>
+          <h1 class="change-password-title">Atur Ulang Kata Sandi</h1>
+          <div class="change-password">
+            <div class="change-password-detail">
+              <div class="change-password-field">
+                <label for="changePassword">Kata Sandi Baru</label>
+                <input
+                  type="text"
+                  class="input-text"
+                  id="changePassword"
+                  placeholder="Masukkan kata sandi baru"
+                />
+              </div>
+
+              <div class="confirm-change-password-field">
+                <label for="confirmChangePassword"
+                  >Konfirmasi Kata Sandi Baru</label
+                >
+                <input
+                  type="text"
+                  class="input-text"
+                  id="confirmChangePassword"
+                  placeholder="Konfirmasi kata sandi baru"
+                />
+              </div>
+            </div>
+            <div class="button-container">
+              <div></div>
+              <button class="button-simpan" id="simpanButton">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </body>
-  <script type="module" src="../../../js/dashboard-inventory.js"></script>
   <script type="module" src="../../../js/dashboard.js"></script>
   <script type="module" src="../../../js/logout.js"></script>
 </html>

@@ -23,7 +23,7 @@ document
     messageError.textContent = "";
 
     try {
-      const response = await fetch("http://127.0.0.1:8080/api/session", {
+      const response = await fetch("http://127.0.0.1:8080/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -44,7 +44,12 @@ document
         responseData.data.role == "INVENTORY_STAFF"
       ) {
         window.location.href = "/app/users/inventory/dashboard/";
-      } else if (response.status === 302) {        
+      } else if (
+        response.status === 200 &&
+        responseData.data.role == "MANAGER"
+      ) {
+        window.location.href = "/app/users/manager/dashboard/";
+      } else if (response.status === 302) {
         window.location.reload();
       } else {
         messageError.textContent = responseData.error.message;
@@ -59,7 +64,7 @@ document
 
 document.addEventListener("DOMContentLoaded", async function (event) {
   try {
-    const response = await fetch(`http://127.0.0.1:8080/api/session`, {
+    const response = await fetch(`http://127.0.0.1:8080/api/auth/session`, {
       method: "GET",
       credentials: "include",
     });
@@ -70,6 +75,8 @@ document.addEventListener("DOMContentLoaded", async function (event) {
         window.location.href = "/app/users/cashiers/dashboard/";
       } else if (responseData.data.role == "INVENTORY_STAFF") {
         window.location.href = "/app/users/inventory/dashboard/";
+      } else if (responseData.data.role == "MANAGER") {
+        window.location.href = "/app/users/manager/dashboard/";
       }
     }
   } catch (error) {
