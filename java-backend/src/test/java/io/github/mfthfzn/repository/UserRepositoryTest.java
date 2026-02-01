@@ -1,8 +1,6 @@
 package io.github.mfthfzn.repository;
 
-import io.github.mfthfzn.entity.Store;
 import io.github.mfthfzn.entity.User;
-import io.github.mfthfzn.enums.UserType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
@@ -16,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -36,23 +34,19 @@ public class UserRepositoryTest {
   @InjectMocks
   private UserRepositoryImpl userRepository;
 
+  private final User user = new User();
+
+  private final String email = "eko@gmail.com";
+
   @BeforeEach
   void setUp() {
     when(entityManagerFactory.createEntityManager()).thenReturn(entityManager);
     when(entityManager.getTransaction()).thenReturn(transaction);
+    user.setEmail(email);
   }
 
   @Test
   void testInsertSuccess() {
-
-    User user = new User();
-    user.setEmail("eko@gmail.com");
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
     userRepository.insert(user);
 
@@ -64,15 +58,6 @@ public class UserRepositoryTest {
 
   @Test
   void testInsertFailed() {
-
-    User user = new User();
-    user.setEmail("eko@gmail.com");
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
     when(transaction.isActive()).thenReturn(true);
     doThrow(PersistenceException.class).when(entityManager).persist(user);
@@ -87,19 +72,10 @@ public class UserRepositoryTest {
   @Test
   void testFindByEmailSuccess() {
 
-    User user = new User();
-    String email = "eko@gmail.com";
-    user.setEmail(email);
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
-
     when(entityManager.find(User.class, email)).thenReturn(user);
-    userRepository.findByEmail(email);
+    Optional<User> byEmail = userRepository.findByEmail(email);
 
+    Assertions.assertEquals(email, byEmail.get().getEmail());
     verify(transaction, times(1)).begin();
     verify(entityManager, times(1)).find(User.class, email);
     verify(transaction, times(1)).commit();
@@ -108,16 +84,6 @@ public class UserRepositoryTest {
 
   @Test
   void testFindByEmailFailed() {
-
-    User user = new User();
-    String email = "eko@gmail.com";
-    user.setEmail(email);
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
     when(transaction.isActive()).thenReturn(true);
     doThrow(PersistenceException.class).when(entityManager).find(User.class, email);
@@ -134,16 +100,6 @@ public class UserRepositoryTest {
   @Test
   void testUpdateSuccess() {
 
-    User user = new User();
-    String email = "eko@gmail.com";
-    user.setEmail(email);
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
-
     userRepository.update(user);
 
     verify(transaction, times(1)).begin();
@@ -154,16 +110,6 @@ public class UserRepositoryTest {
 
   @Test
   void testUpdateFailed() {
-
-    User user = new User();
-    String email = "eko@gmail.com";
-    user.setEmail(email);
-    user.setPassword("rahasia");
-    user.setName("Eko Kurniawan Khannedy");
-    user.setRole(UserType.CASHIER);
-    user.setCreatedAt(LocalDateTime.now());
-    user.setUpdatedAt(LocalDateTime.now());
-    user.setStore(new Store(1, "Big Mall", "Jl untung", LocalDateTime.now(), LocalDateTime.now(), null, null));
 
     when(transaction.isActive()).thenReturn(true);
     doThrow(PersistenceException.class).when(entityManager).merge(user);
