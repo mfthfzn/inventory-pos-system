@@ -2,6 +2,8 @@ package io.github.mfthfzn.controller;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import io.github.mfthfzn.dto.UserResponse;
+import io.github.mfthfzn.enums.InternalErrorCode;
+import io.github.mfthfzn.exception.RefreshTokenExpiredException;
 import io.github.mfthfzn.exception.TokenRequiredException;
 import io.github.mfthfzn.repository.RefreshTokenRepositoryImpl;
 import io.github.mfthfzn.service.TokenService;
@@ -52,6 +54,11 @@ public class RefreshTokenController extends BaseController {
       sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Failed to get data", Map.of(
               "message", tokenRequiredException.getMessage()
       ));
+    } catch (RefreshTokenExpiredException refreshTokenExpiredException) {
+      sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Failed to get data", Map.of(
+              "message", refreshTokenExpiredException.getMessage(),
+              "internal_error_code", InternalErrorCode.REFRESH_TOKEN_EXPIRED
+      ));
     } catch (JWTVerificationException jwtVerificationException) {
       String refreshToken = getCookieValue(req, "refresh_token");
       tokenService.removeRefreshToken(tokenService.getUserFromToken(refreshToken).getEmail());
@@ -60,7 +67,8 @@ public class RefreshTokenController extends BaseController {
       removeCookie(resp, "refresh_token");
 
       sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Failed to get data", Map.of(
-              "message", jwtVerificationException.getMessage()
+              "message", jwtVerificationException.getMessage(),
+              "internal_error_code", InternalErrorCode.TOKEN_INVALID
       ));
     }
   }
