@@ -1,26 +1,25 @@
 package io.github.mfthfzn.service;
 
-import io.github.mfthfzn.dto.ForgotPasswordRequest;
-import io.github.mfthfzn.dto.ForgotPasswordResponse;
-import io.github.mfthfzn.dto.LoginRequest;
-import io.github.mfthfzn.dto.LoginResponse;
+import io.github.mfthfzn.dto.*;
 import io.github.mfthfzn.entity.ResetPasswordToken;
 import io.github.mfthfzn.entity.User;
 import io.github.mfthfzn.exception.AuthenticateException;
+import io.github.mfthfzn.exception.ResetPasswordTokenExpiredException;
+import io.github.mfthfzn.exception.ResetPasswordTokenNotFoundException;
 import io.github.mfthfzn.exception.UserNotFoundException;
 import io.github.mfthfzn.repository.ResetPasswordTokenRepository;
 import io.github.mfthfzn.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
 public class AuthServiceImpl implements AuthService {
 
-  private UserRepository userRepository;
+  private final UserRepository userRepository;
 
   private ResetPasswordTokenRepository resetPasswordTokenRepository;
 
@@ -53,14 +52,31 @@ public class AuthServiceImpl implements AuthService {
     String token = UUID.randomUUID().toString();
     resetPasswordToken.setUser(user);
     resetPasswordToken.setToken(token);
-    resetPasswordToken.setLocalDateTime(LocalDateTime.now().plusMinutes(15).truncatedTo(ChronoUnit.SECONDS));
+    resetPasswordToken.setExpiredAt(LocalDateTime.now().plusMinutes(15).truncatedTo(ChronoUnit.SECONDS));
     resetPasswordTokenRepository.insert(resetPasswordToken);
 
     ForgotPasswordResponse forgotPasswordResponse = new ForgotPasswordResponse();
     forgotPasswordResponse.setUser(user);
-    forgotPasswordResponse.setLinkResetPassword("http://127.0.0.1:5500/api/reset-password?" + token);
+    forgotPasswordResponse.setLinkResetPassword("http://127.0.0.1:5500/app/users/reset-password/?token=" + token);
 
     return forgotPasswordResponse;
   }
+
+  @Override
+  public ResetPasswordResponse validateResetPasswordToken(String token) {
+    Optional<ResetPasswordToken> resetPasswordTokenOptional = resetPasswordTokenRepository.findByToken(token);
+    ResetPasswordToken resetPasswordToken = resetPasswordTokenOptional
+            .orElseThrow(() -> new ResetPasswordTokenNotFoundException("Token not found"));
+
+    if (LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).isAfter(resetPasswordToken.getExpiredAt())) {
+      throw new ResetPasswordTokenExpiredException("Token was expired");
+    }
+
+    ResetPasswordResponse resetPasswordResponse = new ResetPasswordResponse();
+    resetPasswordResponse.setExpired(false);
+    return resetPasswordResponse;
+  }
+
+
 
 }

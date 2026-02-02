@@ -17,12 +17,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-@WebServlet(urlPatterns = "/api/forgot-password")
+@WebServlet(urlPatterns = "/api/auth/forgot-password")
 @Slf4j
   public class ForgotPasswordController extends BaseController {
 
@@ -39,7 +38,7 @@ import java.util.Set;
   EmailService emailService = new EmailServiceImpl();
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     String email = req.getParameter("email");
     ForgotPasswordRequest forgotPasswordRequest = new ForgotPasswordRequest(email);
     Set<ConstraintViolation<Object>> constraintViolations = ValidatorUtil.validate(forgotPasswordRequest);
@@ -56,9 +55,9 @@ import java.util.Set;
 
     try {
       ForgotPasswordResponse forgotPasswordResponse = authService.processForgotPassword(forgotPasswordRequest);
-      new Thread(() -> emailService.sendResetPasswordLink(
+      emailService.sendResetPasswordLink(
               forgotPasswordResponse.getUser().getName(), email, forgotPasswordResponse.getLinkResetPassword()
-      ));
+      );
       sendSuccess(resp, HttpServletResponse.SC_OK, "Success to send email",
               Map.of(
                       "message", "Success send email if your email registered"
