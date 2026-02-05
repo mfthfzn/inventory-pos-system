@@ -154,11 +154,21 @@
 			<version>3.0.0</version>
 		</dependency>
 
+		<!--Mail Dependencies-->
 		<dependency>
 			<groupId>com.sun.mail</groupId>
 			<artifactId>jakarta.mail</artifactId>
 			<version>2.0.1</version>
 		</dependency>
+
+		<!--Redis Dependencies-->
+		<dependency>
+			<groupId>io.lettuce</groupId>
+			<artifactId>lettuce-core</artifactId>
+			<version>6.7.1.RELEASE</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
