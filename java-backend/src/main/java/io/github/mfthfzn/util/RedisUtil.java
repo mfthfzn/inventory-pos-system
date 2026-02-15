@@ -11,7 +11,7 @@ import java.time.Duration;
 @Slf4j
 public class RedisUtil {
 
-  private static RedisClient redisClient;
+  private static final RedisClient redisClient;
 
   @Getter
   private static final StatefulRedisConnection<String, String> connection;
@@ -31,7 +31,6 @@ public class RedisUtil {
   public static void shutdown() {
     connection.close();
     redisClient.close();
-    log.info("Close redis connection");
   }
 
 }
