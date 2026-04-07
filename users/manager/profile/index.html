@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Website Manajemen Inventaris dan Penjualan Pakaian Matahari Store
+    </title>
+    <link rel="stylesheet" href="../../../css/root.css" />
+    <link rel="stylesheet" href="../../../css/dashboard.css" />
+    <link rel="stylesheet" href="../../../css/profile.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- SIDE BAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-header-content">
+          <div style="display: flex; align-items: center; gap: 16px">
+            <img
+              src="../../../assets/logo.svg"
+              alt="Logo"
+              class="sidebar-logo"
+            />
+          </div>
+        </div>
+
+        <ul class="menu">
+          <p class="menu-letter">MENU</p>
+          <li>
+            <a href="../dashboard/" class="menu-item">
+              <i class="fa-solid fa-home"></i>
+              <span class="menu-text">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="../profile/" class="menu-item active">
+              <i class="fa-solid fa-user"></i>
+              <span class="menu-text">Profile</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="store-info-container">
+        <h2 class="store-name">Matahari Big Mall Samarinda</h2>
+        <div class="divider"></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- HEADER -->
+      <header>
+        <nav>
+          <div class="nav-left">
+            <div class="profile-admin">
+              <div class="profile-avatar">
+                <i class="fa-regular fa-user"></i>
+              </div>
+              <div class="profile-info">
+                <div class="profile-name">Admin Dashboard</div>
+                <div class="profile-role">Cashier</div>
+              </div>
+            </div>
+          </div>
+
+          <a class="exit-logo" id="exitButton">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </a>
+        </nav>
+      </header>
+
+      <!-- Title Menu -->
+      <h1 class="menu-title">Profile</h1>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="main-content-data">
+          
+          <!-- Info -->
+          <div class="info">
+            <div class="info-detail">
+              <div class="name">
+                <label for="name">Nama</label>
+                <input
+                  type="text"
+                  class="input-text"
+                  id="name"
+                  disabled
+                />
+              </div>
+
+              <div class="email">
+                <label for="email">Email</label>
+                <input
+                  type="tel"
+                  class="input-text"
+                  id="email"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div class="info-detail">
+              <div class="role">
+                <label for="role">Role</label>
+                <input
+                  type="tel"
+                  class="input-text"
+                  id="role"
+                  disabled
+                />
+              </div>
+
+              <div class="role"></div>
+            </div>
+          </div>
+          <h1 class="change-password-title">Atur Ulang Kata Sandi</h1>
+          <div class="change-password">
+            <div class="change-password-detail">
+              <div class="change-password-field">
+                <label for="changePassword">Kata Sandi Baru</label>
+                <input
+                  type="text"
+                  class="input-text"
+                  id="changePassword"
+                  placeholder="Masukkan kata sandi baru"
+                />
+              </div>
+
+              <div class="confirm-change-password-field">
+                <label for="confirmChangePassword"
+                  >Konfirmasi Kata Sandi Baru</label
+                >
+                <input
+                  type="text"
+                  class="input-text"
+                  id="confirmChangePassword"
+                  placeholder="Konfirmasi kata sandi baru"
+                />
+              </div>
+            </div>
+            <div class="button-container">
+              <div></div>
+              <button class="button-simpan" id="simpanButton">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script type="module" src="../../../js/dashboard.js"></script>
+  <script type="module" src="../../../js/logout.js"></script>
+</html>

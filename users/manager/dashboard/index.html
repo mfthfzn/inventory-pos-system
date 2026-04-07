@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      Website Manajemen Inventaris dan Penjualan Pakaian Matahari Store
+    </title>
+    <link rel="stylesheet" href="../../../css/root.css" />
+    <link rel="stylesheet" href="../../../css/dashboard.css" />
+    <link rel="stylesheet" href="../../../css/dashboard-manager.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- SIDE BAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-header-content">
+          <div style="display: flex; align-items: center; gap: 16px">
+            <img
+              src="../../../assets/logo.svg"
+              alt="Logo"
+              class="sidebar-logo"
+            />
+          </div>
+        </div>
+
+        <ul class="menu">
+          <p class="menu-letter">MENU</p>
+          <li>
+            <a href="../dashboard/" class="menu-item active">
+              <i class="fa-solid fa-home"></i>
+              <span class="menu-text">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="../profile/" class="menu-item">
+              <i class="fa-solid fa-user"></i>
+              <span class="menu-text">Profile</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="store-info-container">
+        <h2 class="store-name"></h2>
+        <div class="divider"></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- HEADER -->
+      <header>
+        <nav>
+          <div class="nav-left">
+            <div class="profile-admin">
+              <div class="profile-avatar">
+                <i class="fa-regular fa-user"></i>
+              </div>
+              <div class="profile-info">
+                <div class="profile-name">Admin Dashboard</div>
+                <div class="profile-role">Cashier</div>
+              </div>
+            </div>
+          </div>
+
+          <a class="exit-logo" id="exitButton">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </a>
+        </nav>
+      </header>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="hero-section">
+          <div class="hero-message">
+            <h1 class="hero-welcome"></h1>
+            <h2 class="hero-desc">
+              Selamat datang di Dashboard Kasir. Silakan kelola transaksi
+              penjualan dengan teliti dan profesional.
+            </h2>
+          </div>
+
+          <div class="hero-image">
+            <img src="../../../assets/hero-image.jpg" alt="gambar karyawan" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script type="module" src="../../../js/dashboard-manager.js"></script>
+  <script type="module" src="../../../js/dashboard.js"></script>
+  <script type="module" src="../../../js/logout.js"></script>
+</html>
