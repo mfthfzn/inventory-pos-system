@@ -38,17 +38,17 @@ document
       console.log("Response:", responseData);
 
       if (response.status === 200 && responseData.data.role == "CASHIER") {
-        window.location.href = "/app/users/cashiers/dashboard/";
+        window.location.href = "/users/cashiers/dashboard/";
       } else if (
         response.status === 200 &&
         responseData.data.role == "INVENTORY_STAFF"
       ) {
-        window.location.href = "/app/users/inventory/dashboard/";
+        window.location.href = "/users/inventory/dashboard/";
       } else if (
         response.status === 200 &&
         responseData.data.role == "MANAGER"
       ) {
-        window.location.href = "/app/users/manager/dashboard/";
+        window.location.href = "/users/manager/dashboard/";
       } else if (response.status === 302) {
         window.location.reload();
       } else {
@@ -72,11 +72,11 @@ document.addEventListener("DOMContentLoaded", async function (event) {
     if (response.status == 200) {
       const responseData = await response.json();
       if (responseData.data.role == "CASHIER") {
-        window.location.href = "/app/users/cashiers/dashboard/";
+        window.location.href = "/users/cashiers/dashboard/";
       } else if (responseData.data.role == "INVENTORY_STAFF") {
-        window.location.href = "/app/users/inventory/dashboard/";
+        window.location.href = "/users/inventory/dashboard/";
       } else if (responseData.data.role == "MANAGER") {
-        window.location.href = "/app/users/manager/dashboard/";
+        window.location.href = "/users/manager/dashboard/";
       }
     }
   } catch (error) {

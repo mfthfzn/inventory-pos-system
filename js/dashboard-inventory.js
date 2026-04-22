@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async function (event) {
 
     const role = responseData.data.role;
     if(role != "INVENTORY_STAFF") {
-      window.location.href = "/app/users/login/";
+      window.location.href = "/users/login/";
     }
   } catch (error) {
     console.error("Error:", error);

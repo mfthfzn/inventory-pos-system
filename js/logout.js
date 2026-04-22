@@ -16,7 +16,7 @@ document
       const data = await response.json();
 
       if (response.status === 200) {
-        window.location.href = "/app/users/login";
+        window.location.href = "/users/login";
       }
     } catch (error) {
       console.error("Error:", error);

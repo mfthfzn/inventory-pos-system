@@ -41,12 +41,12 @@ document.addEventListener("DOMContentLoaded", async function (event) {
       if(responseRefresh.status === 200) {
         window.location.reload()
       } else {
-        window.location.href = "/app/users/login/"
+        window.location.href = "/users/login/"
       }
 
     }
   } catch (error) {
     console.error("Error:", error);
-    window.location.href = "/app/users/login/";
+    window.location.href = "/users/login/";
   }
 });

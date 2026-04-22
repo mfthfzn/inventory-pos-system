@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Forgot Password</title>
+  <link rel="stylesheet" href="../../css/root.css">
+  <link rel="stylesheet" href="../../css/forgot-password.css" />
+</head>
+
+<body>
+  <header class="header">
+    <img
+      src="../../assets/logo.svg"
+      alt="logo matahari store" />
+    <div></div>
+  </header>
+  <div class="container">
+    <div class="forgot-password-container">
+      <div class="image-container">
+        <img src="../../assets/reset-password.jpg" alt="logo forgot-password" />
+      </div>
+      <div class="form-container">
+        <h2 class="forgot-password-header">Ubah Kata Sandi</h2>
+        <p class="forgot-password-description">
+          Masukkan email Anda, kami akan mengirimkan link untuk reset password.
+        </p>
+        <form action="" method="POST" class="forgot-password-form">
+          <label class="email-label" for="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            placeholder="email@gmail.com" />
+          <p class="message"></p>
+          <button type="submit" class="forgot-password-btn">Kirim Link</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+<script type="module" src="../../js/forgot-password.js"></script>
+
+</html>
